@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useStore } from '../lib/store';
-import { Top, useNav } from '../App';
+import { useNav } from '../App';
 import { ActImg, Empty, Icon } from '../ui';
 import { C, Legend, MiniLine, WeightChart } from '../Chart';
 import { addDays, diffDays, shortDate, today, WD_SHORT, timeOf } from '../lib/dates';
@@ -25,7 +25,6 @@ export function Insights() {
 
   if (!first) return (
     <>
-      <Top title="התקדמות" sub="המחקר על הגוף שלך" />
       <div className="card"><Empty img="/img/f-scale.png" title="התובנות נבנות מהשקילות שלך" text="שבוע של שקילות בוקר וערב, וכמה מדידות לפני/אחרי - ומתחילים לראות כמה אתה שורף בלילה, מה שורף לך הכי הרבה, ואיזה יום הכי כבד." /></div>
     </>
   );
@@ -48,7 +47,7 @@ export function Insights() {
   return (
     <>
       <div className="ghead">
-        <Top title="ההתקדמות שלי" sub={`${diffDays(t, from) + 1} ימים`} />
+        <div className="gk">ההתקדמות שלי</div>
         {total != null && <div className="v"><span>{total <= 0 ? '−' : '+'}{Math.abs(total).toFixed(1)}</span><small>ק״ג</small></div>}
         <div className="s">ב-{diffDays(t, from) + 1} הימים האחרונים, לפי הממוצע השבועי</div>
         {trend != null && <div className="hp"><Icon name={trend <= -700 ? 'check' : 'chart'} size={16} stroke={3} />{trend <= -700 ? 'בכיוון היעד' : trend < 0 ? 'יורד, מתחת ליעד' : 'השבוע לא יורד'}: <span className="num">{(Math.abs(trend) / 1000).toFixed(2)}</span> ק״ג בשבוע</div>}
@@ -71,7 +70,6 @@ export function Insights() {
             {r.conclusions.map((c, i) => (
               <div key={i} className={`ins ${i % 3 === 1 ? 'mint' : ''}`}><span className="ii"><Icon name={['chart', 'flame', 'scale', 'timer', 'spark'][i % 5]} size={20} /></span><p style={{ marginTop: 0, fontSize: 15, color: 'var(--ink)' }}>{c}</p></div>
             ))}
-            <button className="btn soft sm" style={{ justifySelf: 'start' }} onClick={() => { sessionStorage.setItem('kaw-research', '1'); go('coach'); }}><Icon name="chat" size={18} />לשאול את המאמנת על זה</button>
           </div>
         )}
 

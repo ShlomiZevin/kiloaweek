@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useStore } from '../lib/store';
-import { Top, useNav } from '../App';
+import { useNav } from '../App';
 import { Empty, Icon, Sheet, signedG, tone } from '../ui';
 import { addDays, diffDays, heDate, shortDate, today, WD_SHORT, weekday } from '../lib/dates';
 import { dayGain, dayKinds, nightBurn, toMap, vsDaysAgo, weeks } from '../lib/calc';
-import { exportCsv, parseImport, type ImportResult } from '../lib/csv';
 import type { Day } from '../lib/types';
 
 export function Journal() {
@@ -12,7 +11,6 @@ export function Journal() {
   const { weigh } = useNav();
   const [view, setView] = useState<'days' | 'weeks'>('days');
   const [edit, setEdit] = useState<string | null>(null);
-  const [imp, setImp] = useState(false);
   const [count, setCount] = useState(45);
   const m = useMemo(() => toMap(days), [days]);
   const withData = days.filter(d => d.morning != null || d.evening != null).map(d => d.date).sort();
@@ -23,19 +21,16 @@ export function Journal() {
 
   return (
     <>
-      <Top title="יומן משקל" sub="בוקר, ערב, ומה שביניהם" />
       <div className="row" style={{ marginBottom: 12 }}>
         <div className="seg" style={{ flex: 1 }}>
           <button className={view === 'days' ? 'on' : ''} onClick={() => setView('days')}>ימים</button>
           <button className={view === 'weeks' ? 'on' : ''} onClick={() => setView('weeks')}>שבועות</button>
         </div>
-        <button className="icon-btn" onClick={() => setImp(true)} aria-label="ייבוא"><Icon name="upload" /></button>
-        <button className="icon-btn" onClick={() => exportCsv(days, measures)} aria-label="ייצוא לאקסל"><Icon name="download" /></button>
       </div>
 
       {!first ? (
-        <div className="card"><Empty img="/img/f-scale.png" title="היומן ריק" text="כל שקילה נכנסת לכאן כמו באקסל - עם השריפה הלילית, העלייה היומית וההשוואות מחושבות לבד.">
-          <div className="row"><button className="btn sm" onClick={() => weigh()}>שקילה ראשונה</button><button className="btn soft sm" onClick={() => setImp(true)}>ייבוא מאקסל</button></div>
+        <div className="card"><Empty img="/img/f-scale.png" title="היומן ריק" text="כל שקילה נכנסת לכאן - עם השריפה הלילית, העלייה היומית וההשוואות מחושבות לבד.">
+          <button className="btn sm" onClick={() => weigh()}>שקילה ראשונה</button>
         </Empty></div>
       ) : view === 'days' ? (
         <div className="card" style={{ padding: '6px 12px' }}>
@@ -87,7 +82,6 @@ export function Journal() {
         </div>
       )}
       {edit && <DayEditor date={edit} onClose={() => setEdit(null)} />}
-      {imp && <ImportSheet onClose={() => setImp(false)} />}
     </>
   );
 }
@@ -122,46 +116,6 @@ function DayEditor({ date, onClose }: { date: string; onClose: () => void }) {
       </div>
       <label className="field"><span>הערה</span><textarea className="input" value={note} onChange={e => setNote(e.target.value)} onBlur={() => note !== (day.note || '') && updateDay(date, { note })} placeholder="ישנתי רע, אירוע, מחלה..." /></label>
       {(day.morning != null || day.evening != null) && <button className="btn danger" onClick={async () => { await deleteDay(date); toast('היום נמחק'); onClose(); }}>מחיקת כל היום</button>}
-    </Sheet>
-  );
-}
-
-function ImportSheet({ onClose }: { onClose: () => void }) {
-  const { importDays, saveMeasure, days } = useStore();
-  const { toast } = useNav();
-  const [text, setText] = useState('');
-  const [res, setRes] = useState<ImportResult | null>(null);
-  const [busy, setBusy] = useState(false);
-  const read = (t: string) => { setText(t); setRes(t.trim() ? parseImport(t) : null); };
-  const exists = new Set(days.filter(d => d.morning != null || d.evening != null).map(d => d.date));
-  const go = async () => {
-    if (!res) return;
-    setBusy(true);
-    try {
-      if (res.kind === 'days') { const n = await importDays(res.days); toast(`יובאו ${n} ימים`); }
-      if (res.kind === 'measures') { for (const x of res.measures) await saveMeasure(x); toast(`יובאו ${res.measures.length} מדידות`); }
-      onClose();
-    } finally { setBusy(false); }
-  };
-  return (
-    <Sheet open onClose={onClose} title="ייבוא מאקסל / גוגל שיטס" tall>
-      <ol className="steps">
-        <li>בגיליון, מסמנים את הטבלה כולל שורת הכותרות (תאריך, משקל בוקר, משקל ערב) ומעתיקים.</li>
-        <li>מדביקים כאן. עובד גם עם הגיליון של המדידות הקצרות (סוג, לפני, אחרי, שתייה).</li>
-      </ol>
-      <textarea className="input" style={{ minHeight: 160, direction: 'ltr', fontSize: 13 }} placeholder="הדבק כאן..." value={text} onChange={e => read(e.target.value)} />
-      <label className="btn ghost sm" style={{ justifySelf: 'start' }}>
-        <Icon name="upload" size={18} />או קובץ CSV
-        <input type="file" accept=".csv,.tsv,.txt" hidden onChange={async e => { const f = e.target.files?.[0]; if (f) read(await f.text()); }} />
-      </label>
-      {res && (
-        <div className="card" style={{ background: res.kind === 'none' ? 'var(--red-l)' : 'var(--green-l)' }}>
-          {res.kind === 'none' ? <b>לא מצאתי עמודת תאריך + משקל. ודא ששורת הכותרות הועתקה.</b> :
-            res.kind === 'days' ? <><b>{res.days.length} ימים מוכנים לייבוא</b><div className="hint">{res.days.filter(d => exists.has(d.date)).length ? `${res.days.filter(d => exists.has(d.date)).length} מהם כבר קיימים - הערכים מהגיליון יחליפו את הקיימים. ` : ''}{res.skipped ? `${res.skipped} שורות ריקות דולגו.` : ''}</div></> :
-              <><b>{res.measures.length} מדידות לפני/אחרי מוכנות לייבוא</b><div className="hint">{res.skipped ? `${res.skipped} שורות דולגו.` : ''}</div></>}
-        </div>
-      )}
-      <button className="btn" disabled={!res || res.kind === 'none' || busy} onClick={go}>{busy ? 'מייבא...' : 'ייבוא'}</button>
     </Sheet>
   );
 }

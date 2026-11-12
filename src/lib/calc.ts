@@ -3,17 +3,22 @@ import type { ActType, Day, Measure } from './types';
 import { addDays, diffDays, today, weekday, weekStart, WEEKDAYS } from './dates';
 
 export const AEROBIC: ActType[] = ['run', 'walk', 'swim', 'bike'];
-export const ACTS: { type: ActType; he: string; timed: boolean }[] = [
-  { type: 'pee', he: 'פיפי', timed: false },
-  { type: 'poop', he: 'קקי', timed: false },
-  { type: 'run', he: 'ריצה', timed: true },
-  { type: 'walk', he: 'הליכה', timed: true },
-  { type: 'swim', he: 'בריכה', timed: true },
-  { type: 'bike', he: 'אופניים', timed: true },
-  { type: 'strength', he: 'אימון כוח', timed: true },
-  { type: 'other', he: 'אחר', timed: true },
+// The toilet ones come last and have no words on screen (his rule) - just their pictures.
+export const ACTS: { type: ActType; he: string; ai: string; timed: boolean }[] = [
+  { type: 'run', he: 'ריצה', ai: 'ריצה', timed: true },
+  { type: 'walk', he: 'הליכה', ai: 'הליכה', timed: true },
+  { type: 'swim', he: 'בריכה', ai: 'בריכה', timed: true },
+  { type: 'bike', he: 'אופניים', ai: 'אופניים', timed: true },
+  { type: 'strength', he: 'אימון כוח', ai: 'אימון כוח', timed: true },
+  { type: 'other', he: 'אחר', ai: 'פעילות אחרת', timed: true },
+  { type: 'pee', he: '', ai: 'שירותים (קטנים)', timed: false },
+  { type: 'poop', he: '', ai: 'שירותים (גדולים)', timed: false },
 ];
-export const actHe = (t: ActType) => ACTS.find(a => a.type === t)?.he || t;
+/** The word on screen ('' for the toilet ones - show their picture). */
+export const actHe = (t: ActType) => ACTS.find(a => a.type === t)?.he ?? '';
+/** In sentences: never empty. */
+export const actSay = (t: ActType) => actHe(t) || 'המדידה';
+const actAi = (t: ActType) => ACTS.find(a => a.type === t)?.ai || t;
 export const isTimed = (t: ActType) => !!ACTS.find(a => a.type === t)?.timed;
 
 const num = (v: unknown): number | null => (typeof v === 'number' && isFinite(v) && v > 20 && v < 400 ? v : null);
@@ -206,7 +211,7 @@ function conclude(m: DayMap, measures: Measure[], r: Research, to: string): stri
   const st = actStats(measures).filter(x => x.perMin != null && x.n >= 2 && !['pee', 'poop'].includes(x.type));
   if (st.length >= 2) {
     const best = st.reduce((p, c) => (c.perMin! > p.perMin! ? c : p));
-    out.push(`הפעילות שהכי שורפת לך לדקה: ${actHe(best.type)} - ${best.perMin!.toFixed(1)} גרם לדקה.`);
+    out.push(`הפעילות שהכי שורפת לך לדקה: ${actSay(best.type)} - ${best.perMin!.toFixed(1)} גרם לדקה.`);
   }
   if (r.cheatEffect.n >= 2 && r.cheatEffect.avg != null)
     out.push(`בוקר אחרי צ׳יט דיי אתה בממוצע ${r.cheatEffect.avg > 0 ? 'כבד ב-' : 'קל ב-'}${fmtG(r.cheatEffect.avg)}. זה בעיקר מים - חוזרים לשגרה ורואים איך זה יורד.`);
@@ -214,7 +219,7 @@ function conclude(m: DayMap, measures: Measure[], r: Research, to: string): stri
 }
 
 /** A compact text of his numbers for the coach (the server never reads the database for this). */
-export function coachContext(m: DayMap, measures: Measure[], meals: { date: string; he: string; calories: number; verdict: string }[], profile: { goalWeight?: number; startWeight?: number; heightCm?: number }) {
+export function coachContext(m: DayMap, measures: Measure[], meals: { date: string; he: string; calories: number; verdict: string; protein?: number; carbs?: number; sugar?: number }[], profile: { goalWeight?: number; startWeight?: number; heightCm?: number }) {
   const t = today();
   const lines: string[] = [`היום: ${t} (${WEEKDAYS[weekday(t)]}).`];
   if (profile.startWeight) lines.push(`משקל התחלה: ${profile.startWeight} ק״ג.`);
@@ -230,9 +235,12 @@ export function coachContext(m: DayMap, measures: Measure[], meals: { date: stri
   const wt = weekTrend(m, t);
   if (wt != null) lines.push(`מגמה שבועית (ממוצע 7 ימים מול 7 קודמים): ${wt} גרם.`);
   const st = actStats(measures).filter(x => x.n);
-  if (st.length) lines.push('מדידות לפני/אחרי (ממוצע): ' + st.map(x => `${actHe(x.type)} ${Math.round(x.avgNet!)} גרם${x.perMin != null ? ` (${x.perMin.toFixed(1)} ג׳/דקה)` : ''} ×${x.n}`).join(', '));
+  if (st.length) lines.push('מדידות לפני/אחרי (ממוצע): ' + st.map(x => `${actAi(x.type)} ${Math.round(x.avgNet!)} גרם${x.perMin != null ? ` (${x.perMin.toFixed(1)} ג׳/דקה)` : ''} ×${x.n}`).join(', '));
   const todays = meals.filter(x => x.date === t);
-  if (todays.length) lines.push(`אכל היום: ${todays.map(x => `${x.he} ${x.calories} קק״ל${x.verdict === 'no' ? ' (לא בשיטה)' : ''}`).join('; ')}. סה״כ ${todays.reduce((a, x) => a + x.calories, 0)} קק״ל.`);
+  if (todays.length) {
+    const sum = (k: 'protein' | 'carbs' | 'sugar' | 'calories') => todays.reduce((a, x) => a + (x[k] || 0), 0);
+    lines.push(`אכל היום: ${todays.map(x => `${x.he} (חלבון ${x.protein ?? '?'}, פחמימות ${x.carbs ?? '?'}, סוכרים ${x.sugar ?? '?'} ג׳)${x.verdict === 'no' ? ' (לא בשיטה)' : ''}`).join('; ')}. סה״כ: חלבון ${sum('protein')} ג׳, פחמימות ${sum('carbs')} ג׳, סוכרים ${sum('sugar')} ג׳, ${sum('calories')} קק״ל.`);
+  }
   return lines.join('\n');
 }
 
@@ -247,7 +255,7 @@ export function researchContext(m: DayMap, measures: Measure[], days: Day[]) {
   const done = measures.filter(x => x.afterKg != null).slice(-60);
   if (done.length) {
     lines.push('מדידות לפני/אחרי (סוג | נטו גרם | דקות):');
-    for (const x of done) lines.push(`${actHe(x.type)} | ${measureNet(x)} | ${measureMinutes(x) ?? '-'}`);
+    for (const x of done) lines.push(`${actAi(x.type)} | ${measureNet(x)} | ${measureMinutes(x) ?? '-'}`);
   }
   return lines.join('\n');
 }

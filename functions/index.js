@@ -2,8 +2,8 @@
 // "put it on the same servers the Shlomiverse uses") but works on the app's own project, kiloaweek-app: verifies its
 // Google sign-ins and reads/writes its Firestore (the runtime service account has roles/datastore.user there).
 // All behind Google sign-in:
-//   POST /meal       a plate photo or a sentence -> calories per item + a verdict against the method
-//   POST /chat       the coach (knows the method + the user's own numbers); logs a meal when he says / shows he ate
+//   POST /meal       a plate photo or a sentence -> protein / carbs / sugars / calories per item + a verdict (never asks back)
+//   POST /chat       the coach (knows the method + the user's own numbers); offers log cards (meal / weight / water) to add in one tap
 //   POST /transcribe a voice message -> Hebrew text (gpt-4o-transcribe)
 //   POST /analysis   the multi-day analyst: night burn, day gain, food, sleep and the trend over weeks -> conclusions
 //   POST /push/test  a test notification to this user's devices
@@ -81,47 +81,73 @@ function parseJson(s) {
 const isImage = v => typeof v === 'string' && /^data:image\/(png|jpe?g|webp|heic|heif);base64,/.test(v) && v.length < 6_000_000;
 
 // ── the prompts (fixed text first, always identical) ──────────────
+const MEAL_JSON = '{"he":"<שם קצר לארוחה, 2-5 מילים, בלי כמויות>","items":[{"he":"<פריט + כמות משוערת>","protein":<גרם>,"carbs":<גרם>,"sugar":<גרם>,"calories":<מספר>}],' +
+  ' "verdict":"ok|warn|no","why":"<משפט אחד בעברית: למה, לפי השיטה>"}';
+const MEAL_RULES = [
+  'סופרים בעיקר חלבון, פחמימות וסוכרים (בגרם) - וגם קלוריות. לכל פריט בנפרד.',
+  'sugar = סוכרים (כולל סוכר טבעי של פרי/חלב), והוא חלק מ-carbs.',
+  'כמות שהמשתמש ציין - מכבדים אותה. כמות שלא ציין - משלימים מהיגיון למנה ממוצעת ישראלית רגילה, וכותבים את ההנחה בשם הפריט ("חזה עוף (~150 ג׳)").',
+  'אף פעם לא שואלים שאלות ולא מבקשים פירוט. תמיד מחזירים הערכה.',
+  'verdict: ok = מתאים לשיטה. warn = בסדר אבל לשים לב (שמן נסתר, רוטב, כמות גדולה, פרי בכמות, טחינה/תמרים לא במידה, ממתק "דיאטטי" מסחרי).',
+  'no = לא בשיטה (סוכר, לחם/פיתה/פסטה/תפוחי אדמה, טיגון בשמן, מאפים, מתוקים עם סוכר).',
+  'אם המשתמש כתב שזה צ׳יט דיי - verdict הוא ok ו-why אומר שזה יום חופשי, בלי רגשות אשם.',
+];
 const MEAL_SYS = [
   'אתה מנתח הארוחות של אפליקציית "קילו בשבוע". זו השיטה שהמשתמש עובד לפיה:',
   BIBLE,
   '',
   '== התפקיד שלך ==',
-  'המשתמש שולח תמונה של הצלחת או משפט על מה שאכל. אתה מחזיר JSON בלבד (בלי טקסט מסביב):',
-  '{"he":"<שם קצר לארוחה, 2-5 מילים, בלי כמויות>","items":[{"he":"<פריט + כמות משוערת>","calories":<מספר>}],',
-  ' "calories":<סכום הפריטים>,"protein":<גרם חלבון משוער>,"sweets":<כמה מתוקים ללא סוכר יש בארוחה, בדרך כלל 0>,',
-  ' "verdict":"ok|warn|no","why":"<משפט אחד בעברית: למה, לפי השיטה>","needsInfo":false,"question":null}',
-  'verdict: ok = מתאים לשיטה. warn = בסדר אבל לשים לב (שמן נסתר, רוטב, כמות גדולה, פרי בכמות, טחינה/תמרים לא במידה, ממתק "דיאטטי" מסחרי).',
-  'no = לא בשיטה (סוכר, לחם/פיתה/פסטה/תפוחי אדמה, טיגון בשמן, מאפים, מתוקים עם סוכר).',
-  'אם המשתמש כתב שזה צ׳יט דיי - verdict הוא ok ו-why אומר שזה יום חופשי, בלי רגשות אשם.',
-  'הערכת קלוריות: לפי מנות ישראליות רגילות. כמות שהמשתמש ציין - כבד אותה. calories חייב להיות סכום הפריטים.',
-  'אם אי אפשר להעריך בכלל (תמונה לא ברורה, תיאור מעורפל) - needsInfo=true ושאלה קצרה אחת ב-question, בלי מספרים.',
+  'המשתמש שולח תמונה של הצלחת או מספר מה אכל. אתה מחזיר JSON בלבד (בלי טקסט מסביב):',
+  MEAL_JSON,
+  ...MEAL_RULES,
 ].join('\n');
 
 const COACH_SYS = [
-  'את המאמנת של אפליקציית "קילו בשבוע" - שיטה אישית לירידה במשקל. זו השיטה, ואת עובדת רק לפיה:',
+  'את המאמנת של אפליקציית "קילו בשבוע" - מאמנת AI לשיטה אישית לירידה במשקל. זו השיטה, ואת עובדת רק לפיה:',
   BIBLE,
   '',
   '== איך את מדברת ==',
   '- עברית בלבד, קצר ומעשי: 1-4 משפטים, או רשימה קצרה כשמבקשים תפריט/רעיונות. בלי הקדמות, בלי "שאלה מצוינת".',
   '- חברה שמכירה את השיטה, לא דיאטנית שמטיפה. בלי רגשות אשם, במיוחד על צ׳יט דיי.',
+  '- לא נודניקית: אף פעם לא שואלת שאלות הבהרה על כמויות או פרטים - משלימה מהיגיון. אף פעם לא מסיימת בשאלה או בהצעה ("רוצה ש...?", "אם תרצי...") ולא מציעה שאלות המשך.',
   '- כשיש נתונים של המשתמש (למטה) - תשתמשי בהם ובמספרים שלו. אל תמציאי מספרים שאין.',
   '- המשקל היומי עולה ויורד - תמיד להחזיר את המבט למגמה השבועית (יעד: 700 גרם עד קילו בשבוע).',
   '- שריפה לילית = משקל ערב אתמול פחות משקל בוקר היום. אם היא עולה אחרי ימי כוח - הכוח עובד בשבילו; אם אחרי אירובי - האירובי.',
   '- שאלות רפואיות (תרופות, מחלות, הריון, הפרעות אכילה) - משפט אחד שמפנה לרופא, ואז מה שכן אפשר לפי השיטה.',
-  '- תמונה של צלחת: הערכת קלוריות קצרה לפי פריטים + האם זה בשיטה.',
+  '- בארוחות סופרים בעיקר חלבון, פחמימות וסוכרים.',
   '',
-  '== רישום ארוחה ==',
-  'כשהמשתמש מספר שאכל משהו (תמונה של צלחת, "אכלתי...", "היה לי לצהריים...") - את גם רושמת את הארוחה ביומן האוכל שלו.',
-  'כששואלים רק שאלה ("מה לאכול?", "זה בסדר?") או מתלבטים לפני שאכל - לא רושמים (meal = null).',
+  '== תיעוד ==',
+  'כשהמשתמש מספר שעשה משהו שנרשם באפליקציה - את מציעה לו כרטיס תיעוד (logs), והוא מוסיף אותו בלחיצה. את לא כותבת "רשמתי" - את כותבת שהכנת לו את זה להוספה.',
+  'סוגים: ארוחה שאכל (תמונה של צלחת, "אכלתי...", "היה לי לצהריים...") · שקילה ("שקלתי 81.4", slot = morning אם זה בבוקר או נאמר בוקר, evening אם ערב) · מים ששתה (מ״ל, כוס = 250).',
+  'שאלה בלבד ("מה לאכול?", "זה בסדר?") או התלבטות לפני שאכל - בלי logs.',
+  'ארוחה בלי פירוט - משלימים למנה ממוצעת הגיונית, בלי לשאול.',
+  ...MEAL_RULES.slice(0, 3),
   '',
   '== פלט: JSON בלבד ==',
-  '{"reply":"<התשובה שלך בעברית>","meal":null}',
-  'או, כשרושמים ארוחה:',
-  '{"reply":"<משפט קצר: מה רשמת + האם בשיטה>","meal":{"he":"<שם קצר 2-5 מילים>","items":[{"he":"<פריט + כמות משוערת>","calories":0}],',
-  ' "calories":<סכום הפריטים>,"protein":<גרם>,"verdict":"ok|warn|no","why":"<משפט אחד לפי השיטה>"}}',
+  '{"reply":"<התשובה שלך בעברית>","logs":[]}',
+  'כל פריט ב-logs הוא אחד מאלה:',
+  '{"kind":"meal","meal":' + MEAL_JSON + '}',
+  '{"kind":"weight","slot":"morning|evening","kg":<מספר>}',
+  '{"kind":"water","ml":<מספר>}',
   'verdict: ok = בשיטה. warn = לשים לב (שמן נסתר, רוטב, כמות). no = לא בשיטה (סוכר, לחם/פיתה/פסטה/תפו״א, טיגון, מאפים).',
   'מה שכתבת ב-reply וה-verdict חייבים להסכים: אם כתבת שזה בשיטה - verdict הוא ok.',
 ].join('\n');
+
+const n0 = v => Math.max(0, Math.round(Number(v) || 0));
+/** A meal from the model -> the app's shape (totals = the sum of the items). */
+function cleanMeal(p, fallbackName = 'ארוחה') {
+  if (!p || typeof p !== 'object') return null;
+  const items = (Array.isArray(p.items) ? p.items : []).slice(0, 20).filter(i => i && typeof i.he === 'string')
+    .map(i => ({ he: i.he.slice(0, 80), protein: n0(i.protein), carbs: n0(i.carbs), sugar: n0(i.sugar), calories: n0(i.calories) }));
+  if (!items.length) return null;
+  const sum = k => items.reduce((a, i) => a + i[k], 0);
+  return {
+    he: String(p.he || fallbackName).slice(0, 80), items,
+    protein: sum('protein'), carbs: sum('carbs'), sugar: sum('sugar'), calories: sum('calories'),
+    verdict: ['ok', 'warn', 'no'].includes(p.verdict) ? p.verdict : 'warn',
+    why: String(p.why || '').slice(0, 240),
+  };
+}
 
 // ── API ───────────────────────────────────────────────────────────
 async function handleMeal(uid, b) {
@@ -135,24 +161,9 @@ async function handleMeal(uid, b) {
     { role: 'system', content: [{ type: 'input_text', text: MEAL_SYS }] },
     { role: 'user', content },
   ], { json: true });
-  const p = parseJson(out);
-  if (!p) return [502, { error: 'bad answer' }];
-  if (p.needsInfo) return [200, { needsInfo: true, question: String(p.question || 'אפשר לפרט קצת?').slice(0, 300) }];
-  const items = (Array.isArray(p.items) ? p.items : []).slice(0, 20)
-    .filter(i => i && typeof i.he === 'string')
-    .map(i => ({ he: i.he.slice(0, 80), calories: Math.max(0, Math.round(Number(i.calories) || 0)) }));
-  const sum = items.reduce((a, i) => a + i.calories, 0);
-  return [200, {
-    meal: {
-      he: String(p.he || text || 'ארוחה').slice(0, 80),
-      items,
-      calories: items.length ? sum : Math.max(0, Math.round(Number(p.calories) || 0)),
-      protein: Math.max(0, Math.round(Number(p.protein) || 0)),
-      sweets: Math.max(0, Math.min(6, Math.round(Number(p.sweets) || 0))),
-      verdict: ['ok', 'warn', 'no'].includes(p.verdict) ? p.verdict : 'warn',
-      why: String(p.why || '').slice(0, 240),
-    },
-  }];
+  const meal = cleanMeal(parseJson(out), text || 'ארוחה');
+  if (!meal) return [502, { error: 'לא הצלחתי לנתח, נסו שוב' }];
+  return [200, { meal }];
 }
 
 async function handleChat(uid, b) {
@@ -175,17 +186,13 @@ async function handleChat(uid, b) {
   const deep = !!b.research;
   const { text } = await openai(input, { json: true, effort: deep ? 'medium' : 'low', maxTokens: deep ? 4000 : 1800 });
   const p = parseJson(text) || { reply: text };
-  let meal = null;
-  if (p.meal && typeof p.meal === 'object' && Array.isArray(p.meal.items)) {
-    const items = p.meal.items.slice(0, 20).filter(i => i && typeof i.he === 'string')
-      .map(i => ({ he: i.he.slice(0, 80), calories: Math.max(0, Math.round(Number(i.calories) || 0)) }));
-    if (items.length) meal = {
-      he: String(p.meal.he || 'ארוחה').slice(0, 80), items, calories: items.reduce((a, i) => a + i.calories, 0),
-      protein: Math.max(0, Math.round(Number(p.meal.protein) || 0)),
-      verdict: ['ok', 'warn', 'no'].includes(p.meal.verdict) ? p.meal.verdict : 'warn', why: String(p.meal.why || '').slice(0, 240),
-    };
+  const logs = [];
+  for (const l of (Array.isArray(p.logs) ? p.logs : []).slice(0, 4)) {
+    if (l?.kind === 'meal') { const meal = cleanMeal(l.meal); if (meal) logs.push({ kind: 'meal', meal }); }
+    else if (l?.kind === 'weight' && Number(l.kg) > 25 && Number(l.kg) < 350) logs.push({ kind: 'weight', slot: l.slot === 'evening' ? 'evening' : 'morning', kg: Math.round(Number(l.kg) * 10) / 10 });
+    else if (l?.kind === 'water' && Number(l.ml) > 0) logs.push({ kind: 'water', ml: Math.min(5000, n0(l.ml)) });
   }
-  return [200, { reply: String(p.reply || 'לא הצלחתי לענות הפעם, נסה שוב.').slice(0, 6000), meal }];
+  return [200, { reply: String(p.reply || 'לא הצלחתי לענות הפעם, נסו שוב.').slice(0, 6000), logs }];
 }
 
 // Voice message -> Hebrew text (the app then sends it to the coach like a typed message).

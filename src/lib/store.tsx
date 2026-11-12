@@ -5,11 +5,11 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signInWithRedirect, signOut, type User } from 'firebase/auth';
 import {
   initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, onSnapshot, setDoc, deleteDoc,
-  query, orderBy, limit, where, writeBatch, deleteField,
+  query, orderBy, limit, where, writeBatch, deleteField, increment,
 } from 'firebase/firestore';
 import { firebaseConfig } from './config';
 import { API_BASE } from './config';
-import type { ChatMsg, Day, Meal, Measure, Profile } from './types';
+import type { ChatMsg, Day, Meal, Measure, Profile, SavedMeal } from './types';
 import { addDays, today } from './dates';
 
 export const app = initializeApp(firebaseConfig);
@@ -32,6 +32,12 @@ export const signOutNow = () => signOut(auth);
 
 export const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const clean = <T extends object>(o: T) => JSON.parse(JSON.stringify(o)) as T; // drops undefined
+/** The meal library key: the meal's name, normalized (same name = same saved meal). */
+export const foodKey = (he: string) => (he.trim().replace(/\s+/g, ' ').replace(/[\/#?.\[\]]/g, '').slice(0, 80) || 'ארוחה');
+/** What the library keeps of a meal. */
+export function libraryEntry(m: Meal) {
+  return clean({ he: m.he, items: m.items, calories: m.calories, protein: m.protein, carbs: m.carbs, sugar: m.sugar, verdict: m.verdict, why: m.why, thumb: m.thumb, lastAt: m.at });
+}
 
 export type Store = {
   user: User | null;
@@ -41,6 +47,7 @@ export type Store = {
   measures: Measure[];
   meals: Meal[];
   chat: ChatMsg[];
+  foods: SavedMeal[];
   loaded: boolean;
   setWeight: (date: string, slot: 'morning' | 'evening', kg: number | null, at?: number) => Promise<void>;
   updateDay: (date: string, patch: Partial<Day>) => Promise<void>;
@@ -49,10 +56,12 @@ export type Store = {
   deleteMeasure: (id: string) => Promise<void>;
   saveMeal: (m: Meal) => Promise<void>;
   deleteMeal: (id: string) => Promise<void>;
+  /** Adds the meal to the library (or counts one more use). */
+  rememberMeal: (m: Meal) => Promise<void>;
+  forgetMeal: (key: string) => Promise<void>;
   addChat: (m: ChatMsg) => Promise<void>;
   clearChat: () => Promise<void>;
   saveProfile: (p: Partial<Profile>) => Promise<void>;
-  importDays: (rows: Day[]) => Promise<number>;
   api: <T = any>(path: string, body: unknown) => Promise<T>;
 };
 
@@ -67,12 +76,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [measures, setMeasures] = useState<Measure[]>([]);
   const [meals, setMeals] = useState<Meal[]>([]);
   const [chat, setChat] = useState<ChatMsg[]>([]);
+  const [foods, setFoods] = useState<SavedMeal[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => onAuthStateChanged(auth, u => { setUser(u); setReady(true); }), []);
 
   useEffect(() => {
-    if (!user) { setDays([]); setMeasures([]); setMeals([]); setChat([]); setProfile({}); setLoaded(false); return; }
+    if (!user) { setDays([]); setMeasures([]); setMeals([]); setChat([]); setFoods([]); setProfile({}); setLoaded(false); return; }
     const base = `users/${user.uid}`;
     const subs = [
       onSnapshot(doc(db, base), s => {
@@ -86,6 +96,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       onSnapshot(collection(db, `${base}/days`), s => { setDays(s.docs.map(d => ({ ...(d.data() as Day), date: d.id }))); setLoaded(true); }),
       onSnapshot(query(collection(db, `${base}/measures`), orderBy('startedAt', 'desc'), limit(500)), s => setMeasures(s.docs.map(d => ({ ...(d.data() as Measure), id: d.id })))),
       onSnapshot(query(collection(db, `${base}/meals`), where('date', '>=', addDays(today(), -60))), s => setMeals(s.docs.map(d => ({ ...(d.data() as Meal), id: d.id })).sort((a, b) => a.at - b.at))),
+      onSnapshot(collection(db, `${base}/foods`), s => setFoods(s.docs.map(d => ({ ...(d.data() as SavedMeal), id: d.id })).sort((a, b) => b.n - a.n || b.lastAt - a.lastAt))),
       onSnapshot(query(collection(db, `${base}/chat`), orderBy('at', 'desc'), limit(80)), s => setChat(s.docs.map(d => ({ ...(d.data() as ChatMsg), id: d.id })).reverse())),
     ];
     return () => subs.forEach(u => u());
@@ -94,7 +105,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const store = useMemo<Store>(() => {
     const base = () => `users/${auth.currentUser!.uid}`;
     return {
-      user, ready, profile, days, measures, meals, chat, loaded,
+      user, ready, profile, days, measures, meals, chat, foods, loaded,
       async setWeight(date, slot, kg, at) {
         const ref = doc(db, `${base()}/days/${date}`);
         if (kg == null) await setDoc(ref, { [slot]: deleteField(), [slot + 'At']: deleteField() }, { merge: true });
@@ -106,6 +117,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       async deleteMeasure(id) { await deleteDoc(doc(db, `${base()}/measures/${id}`)); },
       async saveMeal(m) { const { id, ...rest } = m; await setDoc(doc(db, `${base()}/meals/${id}`), clean(rest)); },
       async deleteMeal(id) { await deleteDoc(doc(db, `${base()}/meals/${id}`)); },
+      async rememberMeal(m) { await setDoc(doc(db, `${base()}/foods/${foodKey(m.he)}`), { ...libraryEntry(m), n: increment(1) }, { merge: true }); },
+      async forgetMeal(key) { await deleteDoc(doc(db, `${base()}/foods/${key}`)); },
       async addChat(m) { const { id, ...rest } = m; await setDoc(doc(db, `${base()}/chat/${id}`), clean(rest)); },
       async clearChat() {
         const b = writeBatch(db);
@@ -113,19 +126,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         await b.commit();
       },
       async saveProfile(p) { await setDoc(doc(db, base()), clean(p), { merge: true }); },
-      async importDays(rows) {
-        let n = 0;
-        for (let i = 0; i < rows.length; i += 400) {
-          const b = writeBatch(db);
-          for (const r of rows.slice(i, i + 400)) {
-            const { date, ...rest } = r;
-            b.set(doc(db, `${base()}/days/${date}`), clean(rest), { merge: true }); n++;
-          }
-          await b.commit();
-        }
-        await setDoc(doc(db, base()), { imported: true }, { merge: true });
-        return n;
-      },
       async api(path, body) {
         const token = await auth.currentUser!.getIdToken();
         const r = await fetch(`${API_BASE}/${path}`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` }, body: JSON.stringify(body) });
@@ -134,7 +134,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return j;
       },
     };
-  }, [user, ready, profile, days, measures, meals, chat, loaded]);
+  }, [user, ready, profile, days, measures, meals, chat, foods, loaded]);
 
   return <StoreCtx.Provider value={store}>{children}</StoreCtx.Provider>;
 }

@@ -6,12 +6,12 @@ import { avg7, dayGain, dayKinds, eOf, mOf, nightBurn, weekTrend, type DayMap, g
 
 const avg = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
 
-export type DayFood = { calories: number; meals: number; off: number; warn: number };
+export type DayFood = { calories: number; protein: number; carbs: number; sugar: number; meals: number; off: number; warn: number };
 export function foodByDay(meals: Meal[]) {
   const m = new Map<string, DayFood>();
   for (const x of meals) {
-    const f = m.get(x.date) || { calories: 0, meals: 0, off: 0, warn: 0 };
-    f.calories += x.calories; f.meals++; if (x.verdict === 'no') f.off++; if (x.verdict === 'warn') f.warn++;
+    const f = m.get(x.date) || { calories: 0, protein: 0, carbs: 0, sugar: 0, meals: 0, off: 0, warn: 0 };
+    f.calories += x.calories; f.protein += x.protein || 0; f.carbs += x.carbs || 0; f.sugar += x.sugar || 0; f.meals++; if (x.verdict === 'no') f.off++; if (x.verdict === 'warn') f.warn++;
     m.set(x.date, f);
   }
   return m;
@@ -81,12 +81,12 @@ export function analysisData(m: DayMap, measures: Measure[], meals: Meal[], days
   const from = diffDays(t, first) > 42 ? addDays(t, -41) : first;
   const food = foodByDay(meals);
   const L: string[] = [`היום ${t} (${WEEKDAYS[weekday(t)]}). יעד שבועי: ${profile.weeklyGoalG || 800} גרם.${profile.goalWeight ? ` משקל יעד: ${profile.goalWeight}.` : ''}`];
-  L.push('', 'ימים (תאריך | יום | בוקר | ערב | שריפה לילית ג׳ | עלייה יומית ג׳ | ממוצע 7 ימים | שינה ש׳ | קלוריות | ארוחות מחוץ לשיטה | מתוקים | סוג יום):');
+  L.push('', 'ימים (תאריך | יום | בוקר | ערב | שריפה לילית ג׳ | עלייה יומית ג׳ | ממוצע 7 ימים | שינה ש׳ | קלוריות | חלבון/פחמימות/סוכרים ג׳ | ארוחות מחוץ לשיטה | מתוקים | סוג יום):');
   for (let d = from; diffDays(t, d) >= 0; d = addDays(d, 1)) {
     const day = m.get(d), f = food.get(d), k = dayKinds(m, measures, d), a7 = avg7(m, d);
     if (!day && !f) continue;
     L.push([d, WEEKDAYS[weekday(d)], mOf(m, d) ?? '-', eOf(m, d) ?? '-', nightBurn(m, d) ?? '-', dayGain(m, d) ?? '-', a7 != null ? a7.toFixed(2) : '-', day?.sleep ?? '-',
-      f ? f.calories : 'לא תועד', f ? f.off : '-', day?.sweets ?? '-', [k.strength && 'כוח', k.aerobic && 'אירובי', k.cheat && 'צ׳יט'].filter(Boolean).join('+') || 'רגיל'].join(' | '));
+      f ? f.calories : 'לא תועד', f ? `${f.protein}/${f.carbs}/${f.sugar}` : '-', f ? f.off : '-', day?.sweets ?? '-', [k.strength && 'כוח', k.aerobic && 'אירובי', k.cheat && 'צ׳יט'].filter(Boolean).join('+') || 'רגיל'].join(' | '));
   }
   const wt = weekTrend(m, t);
   L.push('', '== מה הקוד מצא ==');

@@ -30,7 +30,8 @@ export type Measure = {
   note?: string;
 };
 
-export type MealItem = { he: string; calories: number };
+/** Counted mainly in protein / carbs / sugars (grams), plus calories. */
+export type MealItem = { he: string; calories: number; protein?: number; carbs?: number; sugar?: number };
 export type Meal = {
   id: string;
   date: string;
@@ -39,16 +40,29 @@ export type Meal = {
   items: MealItem[];
   calories: number;
   protein?: number;
+  carbs?: number;
+  sugar?: number;
   verdict: 'ok' | 'warn' | 'no';
   why?: string;
   thumb?: string; // small jpeg data url
   text?: string;
 };
+export type MealCore = Omit<Meal, 'id' | 'date' | 'at'>;
+
+/** The meal library: every meal she logged, kept once by name, to add again in one tap. Doc id = normalized name. */
+export type SavedMeal = MealCore & { id: string; n: number; lastAt: number };
+
+/** A log card the coach offers in the chat; the user adds it with one tap. */
+export type LogCard =
+  | { kind: 'meal'; meal: MealCore; added?: string; removed?: boolean } // added = the meal id once added
+  | { kind: 'weight'; slot: 'morning' | 'evening'; kg: number; added?: string; removed?: boolean } // added = the date
+  | { kind: 'water'; ml: number; added?: string; removed?: boolean };
 
 export type ChatMsg = {
   id: string; role: 'user' | 'assistant'; text: string; at: number; thumb?: string;
   voice?: boolean; // the user's message came from a voice recording
-  meal?: { id: string; he: string; calories: number; verdict: 'ok' | 'warn' | 'no'; removed?: boolean }; // a meal the coach logged
+  meal?: { id: string; he: string; calories: number; verdict: 'ok' | 'warn' | 'no'; removed?: boolean }; // old: a meal the coach logged by itself
+  logs?: LogCard[]; // log cards the coach offered
 };
 
 export type Profile = {
@@ -62,7 +76,6 @@ export type Profile = {
   calorieTarget?: number;
   reminders?: { on: boolean; morning: string; evening: string };
   createdAt?: number;
-  imported?: boolean;
   analysis?: { date: string; at: number; result: Analysis };
 };
 

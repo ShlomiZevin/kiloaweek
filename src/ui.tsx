@@ -32,6 +32,13 @@ const P: Record<string, ReactNode> = {
   dots: <><circle cx="12" cy="5" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="12" cy="19" r="1" /></>,
   flame: <path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.6 2.8-5.4 3.6-9.3 2.1 1.4 3 3.2 3 5 1-.6 1.7-1.7 1.9-3 2.4 2 4.5 4.6 4.5 7.6C18.5 18.6 15.9 21 12 21Z" />,
   mic: <><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" /></>,
+  target: <><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="4.5" /><circle cx="12" cy="12" r=".8" /></>,
+  logout: <><path d="M14 4.5H6.5v15H14" /><path d="M10.5 12H21M17.5 8.5 21 12l-3.5 3.5" /></>,
+  repeat: <><path d="M4 11a7 7 0 0 1 12-4.9L18.5 8.5" /><path d="M18.5 4v4.5H14" /><path d="M20 13a7 7 0 0 1-12 4.9L5.5 15.5" /><path d="M5.5 20v-4.5H10" /></>,
+  keyboard: <><rect x="2.5" y="6" width="19" height="12" rx="2.5" /><path d="M6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M8 14h8" /></>,
+  image: <><rect x="3.5" y="4.5" width="17" height="15" rx="2.5" /><circle cx="9" cy="10" r="1.6" /><path d="m4 17 5-4.5 4 3.5 3-2.5 4 3.5" /></>,
+  info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v5.5M12 7.8h.01" /></>,
+  sunset: <><path d="M4 18h16M7 14.5a5 5 0 0 1 10 0" /><path d="M12 4v3M4.5 9l2 1.5M19.5 9l-2 1.5" /></>,
   candy: <><circle cx="12" cy="12" r="4.5" /><path d="m7.8 9.8-3.3-2.3v9l3.3-2.3M16.2 9.8l3.3-2.3v9l-3.3-2.3" /></>,
 };
 export function Icon({ name, size = 22, stroke = 2, className }: { name: keyof typeof P | string; size?: number; stroke?: number; className?: string }) {

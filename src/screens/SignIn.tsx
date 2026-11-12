@@ -16,8 +16,8 @@ export function SignIn() {
       <h1>תשקלו בבוקר ובערב, תלמדו איך הגוף שלכם שורף, ותורידו בערך קילו בשבוע.</h1>
       <div className="stack" style={{ gap: 18 }}>
         <div className="promise"><img src="/img/f-scale.png" alt="" /><div><b>משקל יומי ושריפה לילית</b><span>בוקר וערב, כל יום - ורואים כמה נשרף בשינה</span></div></div>
-        <div className="promise"><img src="/img/f-tape.png" alt="" /><div><b>מדידות לפני ואחרי</b><span>ריצה, בריכה, שירותים - מה באמת שורף לגוף שלך</span></div></div>
-        <div className="promise"><img src="/img/f-bowl.png" alt="" /><div><b>אוכל עם קלוריות ומאמנת אישית</b><span>מצלמים את הצלחת, יודעים כמה ואם זה בשיטה</span></div></div>
+        <div className="promise"><img src="/img/f-tape.png" alt="" /><div><b>מדידות לפני ואחרי</b><span>לפני ואחרי כל פעילות - כמה הגוף באמת מאבד</span></div></div>
+        <div className="promise"><img src="/img/f-bowl.png" alt="" /><div><b>אוכל ומאמנת AI</b><span>מצלמים או מספרים מה אכלתם - חלבון, פחמימות, סוכרים</span></div></div>
       </div>
       <div style={{ marginTop: 'auto' }} className="stack">
         <button className="gbtn" onClick={go} disabled={busy}>

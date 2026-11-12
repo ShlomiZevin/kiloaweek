@@ -1,12 +1,12 @@
 // DEV ONLY (npm run dev with VITE_MOCK=1): the same store API over memory + localStorage, with 60 days of
 // realistic data, so every screen can be tested without a Google account. Never part of the production bundle's path.
 import { useMemo, useState, type ReactNode } from 'react';
-import { StoreCtx, type Store } from './store';
+import { StoreCtx, foodKey, libraryEntry, type Store } from './store';
 import { API_BASE } from './config';
-import type { ChatMsg, Day, Meal, Measure, Profile } from './types';
+import type { ChatMsg, Day, Meal, Measure, Profile, SavedMeal } from './types';
 import { addDays, fromLocalInput, today, weekday } from './dates';
 
-const KEY = 'kaw-mock-v1';
+const KEY = 'kaw-mock-v2';
 function seed() {
   const t = today();
   const days: Day[] = [], measures: Measure[] = [];
@@ -34,15 +34,19 @@ function seed() {
     if (i % 4 === 0 && i > 0) { const s = fromLocalInput(`${d}T09:00`); measures.push({ id: 'k' + i, type: 'poop', beforeKg: morning + 0.2, afterKg: +(morning + 0.2 - 0.15 - r() * 0.2).toFixed(2), startedAt: s, endedAt: s }); }
   }
   const meals: Meal[] = [
-    { id: 'a1', date: t, at: fromLocalInput(`${t}T08:30`), he: 'יוגורט עם שיבולת שועל', items: [{ he: 'יוגורט 0% (200 ג׳)', calories: 110 }, { he: 'שיבולת שועל (30 ג׳)', calories: 115 }], calories: 225, protein: 22, verdict: 'ok', why: 'חלבי רזה ושיבולת במידה - בדיוק בשיטה.' },
-    { id: 'a2', date: t, at: fromLocalInput(`${t}T13:10`), he: 'חזה עוף עם סלט', items: [{ he: 'חזה עוף בגריל (150 ג׳)', calories: 250 }, { he: 'סלט ירקות גדול', calories: 80 }, { he: 'קוטג׳ 5% (100 ג׳)', calories: 95 }], calories: 425, protein: 52, verdict: 'ok', why: 'חלבון רזה וירקות, בלי שמן.' },
+    { id: 'a1', date: t, at: fromLocalInput(`${t}T08:30`), he: 'יוגורט עם שיבולת שועל', items: [{ he: 'יוגורט 0% (200 ג׳)', calories: 110, protein: 20, carbs: 8, sugar: 8 }, { he: 'שיבולת שועל (30 ג׳)', calories: 115, protein: 4, carbs: 18, sugar: 0 }], calories: 225, protein: 24, carbs: 26, sugar: 8, verdict: 'ok', why: 'חלבי רזה ושיבולת במידה - בדיוק בשיטה.' },
+    { id: 'a2', date: t, at: fromLocalInput(`${t}T13:10`), he: 'חזה עוף עם סלט', items: [{ he: 'חזה עוף בגריל (150 ג׳)', calories: 250, protein: 46, carbs: 0, sugar: 0 }, { he: 'סלט ירקות גדול', calories: 80, protein: 3, carbs: 14, sugar: 8 }, { he: 'קוטג׳ 5% (100 ג׳)', calories: 95, protein: 11, carbs: 3, sugar: 3 }], calories: 425, protein: 60, carbs: 17, sugar: 11, verdict: 'ok', why: 'חלבון רזה וירקות, בלי שמן.' },
   ];
-  return { profile: { name: 'בודק', email: 'test@example.com', startWeight: 89.5, goalWeight: 80, heightCm: 178, reminders: { on: false, morning: '07:30', evening: '22:00' } } as Profile, days, measures, meals, chat: [] as ChatMsg[] };
+  const foods: SavedMeal[] = [
+    ...meals.map((x, i) => ({ ...(libraryEntry(x) as any), id: foodKey(x.he), n: 5 - i })),
+    { id: 'שקשוקה', he: 'שקשוקה', items: [{ he: 'שקשוקה, 2 ביצים', calories: 260, protein: 15, carbs: 14, sugar: 9 }], calories: 260, protein: 15, carbs: 14, sugar: 9, verdict: 'ok', n: 2, lastAt: Date.now() - 86400000 },
+  ];
+  return { profile: { name: 'בודק', email: 'test@example.com', startWeight: 89.5, goalWeight: 80, heightCm: 178, reminders: { on: false, morning: '07:30', evening: '22:00' } } as Profile, days, measures, meals, foods, chat: [] as ChatMsg[] };
 }
 type DB = ReturnType<typeof seed>;
 function load(): DB {
   if (new URLSearchParams(location.search).has('fresh')) localStorage.removeItem(KEY);
-  if (new URLSearchParams(location.search).has('empty')) return { profile: { reminders: { on: false, morning: '07:30', evening: '22:00' } }, days: [], measures: [], meals: [], chat: [] };
+  if (new URLSearchParams(location.search).has('empty')) return { profile: { reminders: { on: false, morning: '07:30', evening: '22:00' } }, days: [], measures: [], meals: [], foods: [], chat: [] };
   try { const s = localStorage.getItem(KEY); if (s) return JSON.parse(s); } catch {}
   return seed();
 }
@@ -52,7 +56,7 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
   const commit = (f: (d: DB) => DB) => setDb(prev => { const n = f(structuredClone(prev)); localStorage.setItem(KEY, JSON.stringify(n)); return n; });
   const user = { uid: 'dev-user', displayName: 'שלומי בודק', email: 'test@example.com', photoURL: null, getIdToken: async () => 'dev:dev-user' } as any;
   const store = useMemo<Store>(() => ({
-    user, ready: true, loaded: true, profile: db.profile, days: db.days, measures: [...db.measures].sort((a, b) => b.startedAt - a.startedAt), meals: [...db.meals].sort((a, b) => a.at - b.at), chat: db.chat,
+    user, ready: true, loaded: true, profile: db.profile, days: db.days, measures: [...db.measures].sort((a, b) => b.startedAt - a.startedAt), meals: [...db.meals].sort((a, b) => a.at - b.at), chat: db.chat, foods: [...(db.foods || [])].sort((a, b) => b.n - a.n || b.lastAt - a.lastAt),
     async setWeight(date, slot, kg, at) { commit(d => { let x = d.days.find(y => y.date === date); if (!x) { x = { date }; d.days.push(x); } (x as any)[slot] = kg == null ? undefined : kg; (x as any)[slot + 'At'] = kg == null ? undefined : at || Date.now(); return d; }); },
     async updateDay(date, patch) { commit(d => { let x = d.days.find(y => y.date === date); if (!x) { x = { date }; d.days.push(x); } Object.assign(x, patch); return d; }); },
     async deleteDay(date) { commit(d => ({ ...d, days: d.days.filter(x => x.date !== date) })); },
@@ -60,10 +64,11 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
     async deleteMeasure(id) { commit(d => ({ ...d, measures: d.measures.filter(x => x.id !== id) })); },
     async saveMeal(m) { commit(d => ({ ...d, meals: [...d.meals.filter(x => x.id !== m.id), m] })); },
     async deleteMeal(id) { commit(d => ({ ...d, meals: d.meals.filter(x => x.id !== id) })); },
+    async rememberMeal(m) { commit(d => { const id = foodKey(m.he); const old = (d.foods ||= []).find(x => x.id === id); const e = { ...(libraryEntry(m) as any), id, n: (old?.n || 0) + 1 }; d.foods = [...d.foods.filter(x => x.id !== id), e]; return d; }); },
+    async forgetMeal(key) { commit(d => ({ ...d, foods: (d.foods || []).filter(x => x.id !== key) })); },
     async addChat(m) { commit(d => ({ ...d, chat: d.chat.some(x => x.id === m.id) ? d.chat.map(x => (x.id === m.id ? m : x)) : [...d.chat, m] })); },
     async clearChat() { commit(d => ({ ...d, chat: [] })); },
     async saveProfile(p) { commit(d => ({ ...d, profile: { ...d.profile, ...p } })); },
-    async importDays(rows) { commit(d => { for (const r of rows) { const x = d.days.find(y => y.date === r.date); if (x) Object.assign(x, r); else d.days.push(r); } return d; }); return rows.length; },
     async api(path, body) {
       const r = await fetch(`${API_BASE}/${path}`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer dev:dev-user' }, body: JSON.stringify(body) });
       const j = await r.json().catch(() => ({}));

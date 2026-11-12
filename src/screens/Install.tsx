@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Top, useNav } from '../App';
+import { PageHead, useNav } from '../App';
 import { Icon } from '../ui';
 import { canPromptInstall, inAppBrowser, isAndroid, isIOS, isStandalone, promptInstall } from '../lib/pwa';
 
@@ -9,11 +9,11 @@ export function Install() {
   useEffect(() => { const on = () => setCan(true); addEventListener('kaw-can-install', on); return () => removeEventListener('kaw-can-install', on); }, []);
   const ios = isIOS(), android = isAndroid(), inApp = inAppBrowser();
 
-  if (isStandalone()) return (<><Top title="מסך הבית" /><div className="card"><b>האפליקציה כבר במסך הבית.</b><p className="hint">אפשר להפעיל תזכורות לשקילה בעמוד "אני".</p><button className="btn" style={{ marginTop: 12 }} onClick={() => go('me')}>לתזכורות</button></div></>);
+  if (isStandalone()) return (<><PageHead title="מסך הבית" /><div className="card"><b>האפליקציה כבר במסך הבית.</b><p className="hint">אפשר להפעיל תזכורות לשקילה.</p><button className="btn" style={{ marginTop: 12 }} onClick={() => go('reminders')}>לתזכורות</button></div></>);
 
   return (
     <>
-      <Top title="הוספה למסך הבית" sub="כמו אפליקציה, בלי חנות" />
+      <PageHead title="הוספה למסך הבית" sub="כמו אפליקציה, בלי חנות" />
       <div className="stack">
         <div className="card row">
           <img src="/img/icon-192.png" alt="" style={{ width: 64, height: 64, borderRadius: 16 }} />
