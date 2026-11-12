@@ -115,6 +115,7 @@ function LogCardView({ msg, idx }: { msg: ChatMsg; idx: number }) {
   const { toast } = useNav();
   const l = msg.logs![idx];
   const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false);
   const patch = (x: Partial<LogCard>) => addChat({ ...msg, logs: msg.logs!.map((y, j) => (j === idx ? ({ ...y, ...x } as LogCard) : y)) });
 
   async function add() {
@@ -158,6 +159,17 @@ function LogCardView({ msg, idx }: { msg: ChatMsg; idx: number }) {
           : l.kind === 'weight' ? <img className="lc-ic" src={`/img/act-${l.slot}.png`} alt="" />
             : <span className="lc-ic water"><Icon name="drop" size={30} /></span>}
       </div>
+      {l.kind === 'meal' && l.meal.items.length > 0 && (
+        <>
+          <button className="lc-more" onClick={() => setOpen(!open)}>{open ? 'הסתרת הפירוט' : `פירוט (${l.meal.items.length})`}<Icon name={open ? 'minus' : 'plus'} size={14} stroke={2.6} /></button>
+          {open && (
+            <div className="lc-items">
+              {l.meal.items.map((it, i) => <div key={i}><b>{it.he}</b><Macros m={it} /></div>)}
+              <div className="lc-cal">סה״כ <b className="num">{l.meal.calories.toLocaleString('he-IL')}</b> קלוריות</div>
+            </div>
+          )}
+        </>
+      )}
       {done
         ? <div className="lc-done"><span><Icon name="check" size={18} stroke={3} />נוסף</span><button className="link" onClick={undo}>ביטול</button></div>
         : <button className="btn" onClick={add} disabled={busy}>הוסף</button>}

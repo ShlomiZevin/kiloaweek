@@ -3,6 +3,8 @@ import { newId, useStore } from '../lib/store';
 import { useNav } from '../App';
 import { Icon, Sheet, shrinkImage } from '../ui';
 import { addDays, heDate, today, fromLocalInput, toLocalInput, dayOf } from '../lib/dates';
+import { bodyNumbers } from '../lib/body';
+import { latestWeight } from '../lib/calc';
 import { useVoice } from '../lib/voice';
 import { Macros } from './Coach';
 import type { Meal, MealCore, MealItem, SavedMeal } from '../lib/types';
@@ -14,7 +16,7 @@ const sumOf = (items: MealItem[]) => ({
 
 /** Food: counted mainly in protein, carbs and sugars. Three ways in (photo, type, say it), the saved meals again in one tap. */
 export function Food() {
-  const { meals, days, updateDay, foods, api } = useStore();
+  const { meals, days, foods, api, profile } = useStore();
   const { go, toast } = useNav();
   const [date, setDate] = useState(today());
   const [adding, setAdding] = useState<null | { image?: string; text?: string }>(null);
@@ -24,7 +26,8 @@ export function Food() {
   const list = meals.filter(m => m.date === date);
   const day = days.find(d => d.date === date);
   const tot = list.reduce((a, m) => ({ protein: a.protein + (m.protein || 0), carbs: a.carbs + (m.carbs || 0), sugar: a.sugar + (m.sugar || 0), calories: a.calories + (m.calories || 0) }), { protein: 0, carbs: 0, sugar: 0, calories: 0 });
-  const sweets = day?.sweets || 0, water = day?.water || 0;
+  const { body } = bodyNumbers(profile, latestWeight(days) ?? profile.startWeight ?? null);
+  const target = body ? Math.round((body.eatFrom + body.eatTo) / 2 / 50) * 50 : null;
   const again = useAgain(date);
 
   return (
@@ -40,7 +43,7 @@ export function Food() {
           <div><span>פחמימות</span><b className="num">{tot.carbs}</b><small>גרם</small></div>
           <div><span>סוכרים</span><b className="num">{tot.sugar}</b><small>גרם</small></div>
         </div>
-        <div className="cal-pill"><Icon name="flame" size={18} /><b className="num">{tot.calories.toLocaleString('he-IL')}</b> קלוריות</div>
+        <div className="cal-pill"><Icon name="flame" size={18} /><b className="num">{tot.calories.toLocaleString('he-IL')}</b>{target ? <> מתוך <span className="num">{target.toLocaleString('he-IL')}</span></> : null} קלוריות</div>
       </div>
 
       <div className="ways">
@@ -54,12 +57,14 @@ export function Food() {
 
       {foods.length > 0 && (
         <>
-          <div className="sec-title"><span className="row" style={{ gap: 6 }}><Icon name="repeat" size={20} />שוב?</span><button className="link" onClick={() => go('foods')}>כל השמורות</button></div>
+          <div className="sec-title"><span>אכלתם שוב? בלחיצה</span><button className="link" onClick={() => go('foods')}>כל השמורות</button></div>
           <div className="again">
             {foods.slice(0, 8).map(f => (
-              <button key={f.id} className="again-chip" onClick={() => again(f)}>
-                {f.thumb ? <img src={f.thumb} alt="" /> : <span className="ph"><img src="/img/f-bowl.png" alt="" /></span>}
-                <span>{f.he}</span>
+              <button key={f.id} className="again-card" onClick={() => again(f)}>
+                {f.thumb && <img src={f.thumb} alt="" />}
+                <b>{f.he}</b>
+                <span className="ac-m"><span className="num">{f.calories.toLocaleString('he-IL')}</span> קלוריות · חלבון <span className="num">{f.protein ?? 0}</span></span>
+                <span className="ac-add"><Icon name="plus" size={16} stroke={2.8} />הוספה</span>
               </button>
             ))}
           </div>
@@ -77,20 +82,6 @@ export function Food() {
           <Icon name="fwd" size={20} />
         </button>
       )) : <p className="hint empty-line">עוד לא תיעדת אוכל {date === today() ? 'היום' : 'ביום הזה'}.</p>}
-
-      <div className="card ws">
-        <div className="ws-c">
-          <Icon name="drop" size={26} />
-          <div><span>מים</span><b><span className="num">{(water / 1000).toFixed(2).replace(/0$/, '')}</span> ליטר</b></div>
-          <div className="counter"><button onClick={() => updateDay(date, { water: Math.max(0, water - 250) })} aria-label="כוס מים פחות"><Icon name="minus" size={16} /></button><button onClick={() => updateDay(date, { water: water + 250 })} aria-label="עוד כוס מים"><Icon name="plus" size={16} /></button></div>
-        </div>
-        <div className="ws-sep" />
-        <div className="ws-c">
-          <Icon name="candy" size={26} />
-          <div><span>מתוקים ללא סוכר</span><b className={sweets > 6 ? 'bad' : ''}><span className="num">{sweets}</span> מתוך 6</b></div>
-          <div className="counter"><button onClick={() => updateDay(date, { sweets: Math.max(0, sweets - 1) })} aria-label="מתוק פחות"><Icon name="minus" size={16} /></button><button onClick={() => updateDay(date, { sweets: sweets + 1 })} aria-label="עוד מתוק"><Icon name="plus" size={16} /></button></div>
-        </div>
-      </div>
 
       {adding && <AddMeal date={date} input={adding} cheat={!!day?.tags?.cheat} onClose={() => setAdding(null)} />}
       {edit && <EditMeal meal={edit} onClose={() => setEdit(null)} />}

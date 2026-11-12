@@ -85,7 +85,7 @@ const br = await p.$$eval('.br-row b', els => els.map(e => e.textContent));
 ok(br.length === 3 && /^\d\d\.\d$/.test(br[0]), `body: BMI / BMR / TDEE = ${br.join(' | ')}`);
 ok(await p.evaluate(() => !!document.querySelector('.br-goal')), 'body: a draft daily calorie range for 0.7-1 kg a week');
 await p.evaluate(() => { history.pushState(null, '', '/'); dispatchEvent(new PopStateEvent('popstate')); }); await sleep(400);
-ok(await p.evaluate(() => !!document.querySelector('.body-chips') && !document.querySelector('.body-chips.ask')), 'home: shows BMI and the daily burn');
+ok(await p.evaluate(() => document.querySelectorAll('.today .td-c').length === 3 && !!document.querySelector('.td-line')), 'home: eaten / left / the body\'s burn + deficit line');
 
 // account menu
 await p.click('.avatar-btn'); await sleep(300);
@@ -118,7 +118,7 @@ ok(net.replace(/\D/g, '') === '1200', `result: 82.1 -> 81.4 + 500 ml = 1,200 g (
 // food from a saved meal
 await clickText(p, '.nav button', 'אוכל'); await sleep(300);
 const before = await p.$$eval('.card.meal', els => els.length);
-await p.click('.again-chip'); await sleep(400);
+await p.click('.again-card'); await sleep(400);
 ok((await p.$$eval('.card.meal', els => els.length)) === before + 1, 'food: a saved meal is added in one tap');
 
 if (AI) {
@@ -142,6 +142,8 @@ if (AI) {
   const reply = await p.$$eval('.msg.assistant', els => els.at(-1)?.textContent || '');
   ok(!/\?\s*$/.test(reply.trim()), `coach: doesn't end with a question ("${reply.slice(0, 80)}")`);
   ok(!/בשיטה|לשיטה/.test(reply), 'coach: never says "בשיטה" / "לא בשיטה"');
+  await p.click('.lc-more'); await sleep(200);
+  ok((await p.$$eval('.lc-items > div', els => els.length)) > 1, 'coach: the meal card has the same per-item breakdown');
   await p.click('.log-card .btn'); await sleep(500);
   ok(!!(await p.$('.lc-done')), 'coach: the card is added in one tap');
   await p.type('.composer textarea', 'שקלתי עכשיו 81.4, שקילת ערב');
