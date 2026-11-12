@@ -53,7 +53,11 @@ export function Body() {
           <div className="br-row"><div><span>BMI</span><b className="num">{body.bmi.toFixed(1)}</b></div><small>{body.bmiHe} (18.5 עד 25)</small></div>
           <div className="br-row"><div><span>במנוחה מלאה הגוף שורף</span><b><span className="num">{body.bmr.toLocaleString('he-IL')}</span> קלוריות</b></div><small>BMR - גם בלי לזוז בכלל</small></div>
           <div className="br-row"><div><span>ביום רגיל שלך</span><b><span className="num">{body.tdee.toLocaleString('he-IL')}</span> קלוריות</b></div><small>TDEE - עם התנועה של היום-יום</small></div>
-          <div className="br-goal"><span>כדי לרדת 700 גרם עד קילו בשבוע</span><b>בערך <span className="num">{body.eatFrom.toLocaleString('he-IL')}–{body.eatTo.toLocaleString('he-IL')}</span> קלוריות ביום</b></div>
+          <div className="br-goal">
+            <span>יעד יומי - כדי לרדת 700 גרם עד קילו בשבוע</span>
+            <b>בערך <span className="num">{body.target.toLocaleString('he-IL')}</span> קלוריות ביום</b>
+            {body.floored && <small>הגוף שלך שורף ~{body.tdee.toLocaleString('he-IL')} ביום, אז קילו בשבוע רק מאוכל דורש לרדת מתחת ל-{body.floor.toLocaleString('he-IL')} - וזה לא מומלץ. היעד נשאר {body.floor.toLocaleString('he-IL')}, ואת השאר משלימה התנועה (הליכה, אימון).</small>}
+          </div>
           <p className="hint">הערכה לפי נוסחה (Mifflin-St Jeor) - טיוטה. השקילות של כמה שבועות יגידו כמה הגוף שלך באמת שורף.</p>
         </div>
       ) : <p className="hint empty-line">חסר: {missing.join(', ')}.</p>}

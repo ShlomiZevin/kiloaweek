@@ -10,7 +10,9 @@ export const ACTIVITY = [
 ] as const;
 export type Activity = (typeof ACTIVITY)[number]['k'];
 
-export type Body = { bmi: number; bmiHe: string; bmr: number; tdee: number; eatFrom: number; eatTo: number };
+/** target = what to eat today (the middle of the range); floored = the safe minimum lifted it (the burn is too low for a
+ *  full 0.7-1 kg a week from food alone). */
+export type Body = { bmi: number; bmiHe: string; bmr: number; tdee: number; eatFrom: number; eatTo: number; target: number; floor: number; floored: boolean };
 
 /** null + what's missing, or the numbers. */
 export function bodyNumbers(p: Profile, kg: number | null): { body: Body | null; missing: string[] } {
@@ -24,12 +26,14 @@ export function bodyNumbers(p: Profile, kg: number | null): { body: Body | null;
   // 700 g - 1 kg a week ≈ 770-1,100 kcal a day under the burn; never below the resting burn's floor
   const floor = p.sex === 'm' ? 1500 : 1200;
   const r50 = (x: number) => Math.round(x / 50) * 50;
+  const eatFrom = r50(Math.max(floor, tdee - 1100)), eatTo = r50(Math.max(floor, tdee - 770));
   return {
     body: {
+      target: r50((eatFrom + eatTo) / 2), floor, floored: tdee - 770 < floor,
       bmi: Math.round(bmi * 10) / 10,
       bmiHe: bmi < 18.5 ? 'מתחת לטווח התקין' : bmi < 25 ? 'בטווח התקין' : bmi < 30 ? 'מעל הטווח התקין' : 'הרבה מעל הטווח התקין',
       bmr: r50(bmr), tdee: r50(tdee),
-      eatFrom: r50(Math.max(floor, tdee - 1100)), eatTo: r50(Math.max(floor, tdee - 770)),
+      eatFrom, eatTo,
     },
     missing: [],
   };

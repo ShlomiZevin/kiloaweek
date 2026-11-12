@@ -27,7 +27,7 @@ export function Food() {
   const day = days.find(d => d.date === date);
   const tot = list.reduce((a, m) => ({ protein: a.protein + (m.protein || 0), carbs: a.carbs + (m.carbs || 0), sugar: a.sugar + (m.sugar || 0), calories: a.calories + (m.calories || 0) }), { protein: 0, carbs: 0, sugar: 0, calories: 0 });
   const { body } = bodyNumbers(profile, latestWeight(days) ?? profile.startWeight ?? null);
-  const target = body ? Math.round((body.eatFrom + body.eatTo) / 2 / 50) * 50 : null;
+  const target = body?.target ?? null;
   const again = useAgain(date);
 
   return (

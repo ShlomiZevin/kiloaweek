@@ -129,21 +129,20 @@ function Today({ eaten, body, cheat, onFood, onBody }: { eaten: number; body: Re
       </div>
     );
   }
-  const target = Math.round((body.eatFrom + body.eatTo) / 2 / 50) * 50;
+  const target = body.target;
   const left = target - eaten;
   const deficit = body.tdee - eaten;
   const tone = cheat ? 'cheat' : left >= 0 ? 'ok' : deficit > 0 ? 'warn' : 'over';
   const line = cheat ? 'צ׳יט דיי - היום בלי חשבון'
-    : left >= 0 ? <>בגירעון · אפשר עוד <b className="num">{f(left)}</b> קלוריות היום</>
-      : deficit > 0 ? <>עברת את היעד ב-<b className="num">{f(-left)}</b> · עדיין בגירעון קטן</>
-        : <>היום מעל מה שהגוף שורף ב-<b className="num">{f(-deficit)}</b></>;
-  const pct = (x: number) => `${Math.max(0, Math.min(100, (x / body.tdee) * 100))}%`;
+    : deficit > 0 ? <>הגוף שורף ~<b className="num">{f(body.tdee)}</b> ביום · היום בגירעון של <b className="num">{f(deficit)}</b></>
+      : <>הגוף שורף ~<b className="num">{f(body.tdee)}</b> ביום · היום מעליו ב-<b className="num">{f(-deficit)}</b></>;
+  const pct = (x: number) => `${Math.max(0, Math.min(100, (x / Math.max(body.tdee, eaten)) * 100))}%`;
   return (
     <button className={`card today ${tone}`} onClick={onFood}>
       <div className="td-row">
         <div className="td-c"><span>אכלת</span><b className="num">{f(eaten)}</b></div>
-        <div className="td-c main"><span>{left >= 0 ? 'נשארו' : 'מעל היעד'}</span><b className="num">{f(Math.abs(left))}</b></div>
-        <div className="td-c"><span>הגוף שורף</span><b className="num">~{f(body.tdee)}</b></div>
+        <div className="td-c main"><span>{left >= 0 ? 'נשארו עד היעד' : 'מעל היעד'}</span><b className="num">{f(Math.abs(left))}</b></div>
+        <div className="td-c"><span>יעד היום</span><b className="num">{f(target)}</b></div>
       </div>
       <div className="td-bar"><i style={{ width: pct(eaten) }} /><em style={{ insetInlineStart: pct(target) }} /></div>
       <div className="td-line">{line}</div>
