@@ -1,0 +1,2 @@
+SCREEN: a "before / after" measurement in progress - he is about to go for a run.
+Flow: he picked the activity (פיפי, קקי, ריצה, הליכה, בריכה, אופניים, אימון כוח), entered his weight before (87.5), a timer is running since he started; when he is back he will enter the weight after and how much he drank during it; then the app shows the net loss in grams and grams per minute, compared with his own average for this activity. Also show his last few measurements of this kind as a small history.

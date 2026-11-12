@@ -1,0 +1,8 @@
+node_modules
+dist
+functions/node_modules
+.firebase
+*.log
+functions/.secret.local
+functions/.env.local
+design/concepts/*.tmp

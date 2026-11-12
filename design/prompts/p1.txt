@@ -1,0 +1,2 @@
+SCREEN: the home screen he opens every morning and every evening.
+Jobs on this screen: log this morning's weight in one or two taps (the moment of truth after waking up); see last night's burn (yesterday evening -> this morning, e.g. "נשרפו בלילה 650 גרם"); see today's weight against yesterday and against the same day last week; see the week's progress toward the goal of one kilo down; a reminder that the evening weigh-in is still to come; quick buttons to start a before/after measurement and to log a meal. The numbers are the hero.

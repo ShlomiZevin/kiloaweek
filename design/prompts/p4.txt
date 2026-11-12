@@ -1,0 +1,2 @@
+SCREEN: today's food and the AI coach.
+Jobs: he snapped a photo of his plate (chicken breast, a big salad, cottage cheese) and the app shows the estimated calories per item and in total, plus a verdict against the method (fits / watch out / not in the method, e.g. hidden sugar in a sauce). Today's total calories so far, today's sugar-free sweets count out of 6, water. A chat line with the coach where he asks in Hebrew "מה לאכול בערב?" and gets a short practical answer. A toggle that today is a cheat day (free day, no guilt).

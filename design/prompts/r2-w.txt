@@ -1,0 +1,5 @@
+Design a mobile app screen (one phone screen, full-bleed, flat, no device frame) for "קילו בשבוע" (Kilo A Week), a Hebrew-only, right-to-left personal weight-loss app. The owner wants it to feel cool, up to date and very simple: very few things on each screen, one clear main thing, nothing like a busy health dashboard. All interface text in Hebrew.
+
+What the product is: the user weighs himself every morning and every evening. From that the app shows how much he burned overnight while sleeping (yesterday evening minus this morning) and whether his weekly trend is on the goal of 700 grams to 1 kilo down per week. He also weighs before and after things (a run, the pool, the toilet) to learn what burns, logs food by a photo of the plate, and can chat with an AI coach.
+
+SCREEN: the weigh-in moment. He just woke up and stands on the scale; he enters his morning weight (starts from yesterday 81.9, he adjusts it to 81.6) and saves in one tap. The moment should feel satisfying.
