@@ -1,0 +1,12 @@
+The attached picture shows four screens of the app "קילו בשבוע" (Kilo A Week) that the owner picked - the app's design language. Design ONE more screen of the same app: a single phone screen, full-bleed, flat, no device frame, portrait. Hebrew only, right-to-left. The owner wants it cool, up to date and very simple: few things per screen, one clear main thing.
+
+What the product is: a personal weight-loss method built on a calorie deficit over weeks. The user weighs every morning and every evening; the app shows how much the body burned overnight (yesterday evening minus this morning) and the weekly trend (goal: 700 grams to 1 kilo down a week). They can also weigh before and after any activity (same clothes, no wet hair, and they add what they drank meanwhile) to learn exactly how much the body loses. They log food by a photo or by telling what they ate (typing or a voice message); an AI counts mainly protein, carbs and sugars. An AI coach chats in Hebrew.
+
+The app has a header that always stays at the top of every screen (the app name or the screen's name on the right; on the left a button to the AI coach and the user's own round profile picture, which opens the account menu) and a bottom tab bar that always stays at the bottom: בית, יומן, לפני/אחרי (the main middle tab), אוכל, התקדמות.
+
+SCREEN: "הגוף שלי" (my body) - the results part, below the short form (sex, year of birth, height, how active). The MOST important thing on this screen, and the first thing in the results: the user's daily calorie target and the reasoning behind it, so they understand why the number is what it is. The reasoning, step by step, as a visual explanation (not a paragraph):
+1. On a normal day your body burns about 2,200 calories (TDEE).
+2. To lose 700 grams to 1 kilo a week you need to eat about 770 to 1,100 calories a day less than that -> 1,100 to 1,430.
+3. But for a man it's not recommended to go under 1,500 a day (safe minimum).
+4. So your daily target: 1,500 calories. The rest of the deficit comes from movement (walking, training).
+After it, smaller and secondary: BMI 25.8 (normal range 18.5-25), at full rest the body burns 1,700 (BMR). A tiny line that this is a formula's estimate and the weigh-ins over weeks tell the truth.

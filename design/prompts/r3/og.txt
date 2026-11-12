@@ -1,0 +1,3 @@
+The attached picture shows screens of the app "קילו בשבוע" (Kilo A Week) - the app's design language. Design its link-preview picture: the image that appears when someone shares the app's link on WhatsApp, a wide 1.91:1 banner (it will be cropped to 1200x630, so keep everything important inside the middle area with generous margins). Hebrew, right to left.
+
+It must say, in one glance, what the app is and make people want to tap: the name "קילו בשבוע" big and clear; one short line: "שוקלים בבוקר ובערב - ויורדים קילו בשבוע"; and a glimpse of the app itself - a phone showing the home screen with exactly these numbers and no others: "בלילה הגוף שרף 620 גרם" and below it "המשקל הבוקר 81.6 ק״ג". No other text, no URL, no logos of other companies.

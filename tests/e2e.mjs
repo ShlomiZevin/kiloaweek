@@ -81,11 +81,15 @@ await sleep(500);
 
 // body numbers: BMI / BMR / TDEE from the seeded profile (man, 1984, 178 cm, light) and the latest weight
 await p.evaluate(() => { history.pushState(null, '', '/body'); dispatchEvent(new PopStateEvent('popstate')); }); await sleep(400);
-const br = await p.$$eval('.br-row b', els => els.map(e => e.textContent));
-ok(br.length === 3 && /^\d\d\.\d$/.test(br[0]), `body: BMI / BMR / TDEE = ${br.join(' | ')}`);
-ok(await p.evaluate(() => !!document.querySelector('.br-goal')), 'body: a draft daily calorie range for 0.7-1 kg a week');
+const br = await p.$$eval('.body-two b', els => els.map(e => e.textContent));
+ok(br.length === 2 && /^\d\d\.\d$/.test(br[0]), `body: BMI / BMR = ${br.join(' | ')}`);
+ok(await p.evaluate(() => document.querySelectorAll('.target-hero .why-steps li').length === 4), 'body: the daily target first, with its 4 steps');
+await shot(p, 'flow-body');
 await p.evaluate(() => { history.pushState(null, '', '/'); dispatchEvent(new PopStateEvent('popstate')); }); await sleep(400);
 ok(await p.evaluate(() => document.querySelectorAll('.today .td-c').length === 3 && !!document.querySelector('.td-line')), 'home: eaten / left / the body\'s burn + deficit line');
+await p.click('.td-why'); await sleep(300);
+ok(await p.evaluate(() => document.querySelectorAll('.sheet .why-steps li').length === 4), 'home: "why the target" opens the explanation');
+await shot(p, 'flow-why'); await p.keyboard.press('Escape'); await sleep(200);
 
 // account menu
 await p.click('.avatar-btn'); await sleep(300);

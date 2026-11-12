@@ -1,0 +1,6 @@
+The attached pictures are icons of the app "קילו בשבוע" (a weight-loss app). Make FOUR more icons in exactly the same set. They illustrate, step by step, how the daily calorie target is worked out, each shown at about 48 pixels, so ONE simple object each:
+1. the calories the body burns in a day (a flame).
+2. eating a bit less every day (a healthy plate of food with a small minus sign).
+3. a safe minimum you should not go under (a shield with a check mark).
+4. movement that completes the rest (a running shoe in motion).
+All four in ONE horizontal row, left to right in this order, large equal empty gaps between them, the same size, each centered in its quarter of the picture. Transparent background. No text, no letters, no numbers, no frames.

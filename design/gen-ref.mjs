@@ -8,7 +8,7 @@ const [pf, out, model = 'gpt-image-2.6-flare', quality = 'medium'] = process.arg
 const fd = new FormData();
 fd.append('model', model);
 fd.append('prompt', fs.readFileSync(pf, 'utf8'));
-fd.append('size', '1024x1536');
+fd.append('size', process.env.SIZE || '1024x1536');
 fd.append('quality', quality);
 fd.append('image[]', new Blob([fs.readFileSync(new URL('./concept-A-flare.jpg', import.meta.url))], { type: 'image/jpeg' }), 'concept-A.jpg');
 const r = await fetch('https://api.openai.com/v1/images/edits', { method: 'POST', headers: { authorization: 'Bearer ' + key }, body: fd });

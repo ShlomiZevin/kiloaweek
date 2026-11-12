@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useStore } from '../lib/store';
 import { useNav } from '../App';
-import { Icon } from '../ui';
+import { Icon, Sheet } from '../ui';
+import { TargetSteps } from './TargetWhy';
 import { addDays, heDate, hourNow, today } from '../lib/dates';
 import { eOf, latestWeight, mOf, nightBurn, toMap, vsDaysAgo, weekTrend } from '../lib/calc';
 import { bodyNumbers } from '../lib/body';
@@ -62,7 +63,7 @@ export function Home() {
         )}
       </section>
 
-      <Today eaten={eaten} body={body} cheat={cheat} onFood={() => go('food')} onBody={() => go('body')} />
+      <Today eaten={eaten} body={body} sex={profile.sex} cheat={cheat} onFood={() => go('food')} onBody={() => go('body')} />
 
       <div className="tiles2">
         <button className="card tile2" onClick={() => weigh(mo != null ? 'morning' : undefined)}>
@@ -117,8 +118,9 @@ export function Home() {
 
 /** Today's eating against the body's burn: eaten, what's left to the end of the day, the usual burn - and whether today
  *  is still a deficit. The burn is the formula's draft (הגוף שלי); without it: eaten only + a way to fill it in. */
-function Today({ eaten, body, cheat, onFood, onBody }: { eaten: number; body: ReturnType<typeof bodyNumbers>['body']; cheat: boolean; onFood: () => void; onBody: () => void }) {
+function Today({ eaten, body, sex, cheat, onFood, onBody }: { eaten: number; body: ReturnType<typeof bodyNumbers>['body']; sex?: 'm' | 'f'; cheat: boolean; onFood: () => void; onBody: () => void }) {
   const f = (n: number) => n.toLocaleString('he-IL');
+  const [why, setWhy] = useState(false);
   if (!body) {
     return (
       <div className="card today">
@@ -138,14 +140,20 @@ function Today({ eaten, body, cheat, onFood, onBody }: { eaten: number; body: Re
       : <>הגוף שורף ~<b className="num">{f(body.tdee)}</b> ביום · היום מעליו ב-<b className="num">{f(-deficit)}</b></>;
   const pct = (x: number) => `${Math.max(0, Math.min(100, (x / Math.max(body.tdee, eaten)) * 100))}%`;
   return (
-    <button className={`card today ${tone}`} onClick={onFood}>
+    <div className={`card today ${tone}`}>
       <div className="td-row">
-        <div className="td-c"><span>אכלת</span><b className="num">{f(eaten)}</b></div>
-        <div className="td-c main"><span>{left >= 0 ? 'נשארו עד היעד' : 'מעל היעד'}</span><b className="num">{f(Math.abs(left))}</b></div>
-        <div className="td-c"><span>יעד היום</span><b className="num">{f(target)}</b></div>
+        <button className="td-c" onClick={onFood}><span>אכלת</span><b className="num">{f(eaten)}</b></button>
+        <button className="td-c main" onClick={onFood}><span>{left >= 0 ? 'נשארו עד היעד' : 'מעל היעד'}</span><b className="num">{f(Math.abs(left))}</b></button>
+        <div className="td-c"><span>יעד היום</span><b className="num">{f(target)}</b><button className="td-why" onClick={() => setWhy(true)}>למה {f(target)}?</button></div>
       </div>
-      <div className="td-bar"><i style={{ width: pct(eaten) }} /><em style={{ insetInlineStart: pct(target) }} /></div>
-      <div className="td-line">{line}</div>
-    </button>
+      <button className="td-barwrap" onClick={onFood} aria-label="לאוכל">
+        <div className="td-bar"><i style={{ width: pct(eaten) }} /><em style={{ insetInlineStart: pct(target) }} /></div>
+        <div className="td-line">{line}</div>
+      </button>
+      <Sheet open={why} onClose={() => setWhy(false)} title={`למה היעד הוא ${f(target)}?`}>
+        <TargetSteps body={body} sex={sex} />
+        <button className="btn" onClick={() => { setWhy(false); onBody(); }}>עוד על הגוף שלי<Icon name="fwd" size={18} /></button>
+      </Sheet>
+    </div>
   );
 }

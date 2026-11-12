@@ -74,8 +74,8 @@ export function Insights() {
         )}
 
         <div className="grid2">
-          <div className="card tile"><div className="k">שריפה לילית ממוצעת</div><div className="v num">{r.avgNight != null ? Math.round(r.avgNight).toLocaleString('he-IL') : '—'}</div><div className="hint">גרם, ערב → בוקר</div></div>
-          <div className="card tile"><div className="k">עלייה יומית ממוצעת</div><div className="v num">{r.avgDayGain != null ? Math.round(r.avgDayGain).toLocaleString('he-IL') : '—'}</div><div className="hint">גרם, בוקר → ערב</div></div>
+          <div className="card tile"><div className="k">שריפה לילית ממוצעת</div><div className="v num">{r.avgNight != null ? Math.round(r.avgNight).toLocaleString('he-IL') : '—'}</div><div className="hint">גרם, ערב ← בוקר</div></div>
+          <div className="card tile"><div className="k">עלייה יומית ממוצעת</div><div className="v num">{r.avgDayGain != null ? Math.round(r.avgDayGain).toLocaleString('he-IL') : '—'}</div><div className="hint">גרם, בוקר ← ערב</div></div>
         </div>
 
         <div className="card stack">
