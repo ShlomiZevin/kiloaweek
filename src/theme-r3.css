@@ -321,7 +321,6 @@ body { background: linear-gradient(180deg, #d9e0ff 0, #e8ebfd 200px, var(--bg) 4
 .today.warn .td-c.main b { color: #9a6400; } .today.over .td-c.main b { color: var(--red); } .today.cheat .td-c.main b { color: var(--violet); }
 .td-bar { position: relative; height: 10px; border-radius: 999px; background: #e8ebf5; }
 .td-bar i { position: absolute; inset-block: 0; inset-inline-start: 0; border-radius: 999px; background: linear-gradient(90deg, #2dbb8a, #12a594); }
-.today.warn .td-bar i { background: var(--amber); } .today.over .td-bar i { background: var(--red); }
 .td-bar em { position: absolute; top: -3px; width: 3px; height: 16px; border-radius: 2px; background: var(--ink); transform: translateX(50%); }
 .td-line { font-size: 13.5px; color: var(--ink-2); text-align: center; }
 .td-line b { color: var(--ink); }
@@ -388,3 +387,18 @@ body { background: linear-gradient(180deg, #d9e0ff 0, #e8ebfd 200px, var(--bg) 4
 .td-c { color: var(--ink); }
 .td-why { margin-top: 1px; font-size: 12px; font-weight: 700; color: var(--indigo); text-decoration: underline; text-underline-offset: 2px; }
 .td-barwrap { display: grid; gap: 8px; width: 100%; }
+
+/* today's bar: green up to the target, orange past it (red when past the body's burn), the target marked (his note) */
+.td-barwrap { padding-top: 24px; }
+.td-bar { overflow: visible; }
+.td-bar i:not(.ov) { background: linear-gradient(90deg, #2dbb8a, #12a594) !important; }
+.td-bar i.ov { background: var(--amber) !important; border-radius: 999px 0 0 999px; }
+.today.over .td-bar i.ov { background: var(--red) !important; }
+.td-bar em { display: none; }
+.td-goal { position: absolute; bottom: -4px; transform: translateX(50%); display: flex; flex-direction: column; align-items: center; pointer-events: none; z-index: 1; }
+.td-goal small { font-size: 11px; font-weight: 800; color: var(--ink); line-height: 1.1; white-space: nowrap; }
+.td-goal b { font-size: 9px; line-height: 1; color: var(--ink); margin-bottom: 1px; }
+.td-goal::after { content: ''; display: block; width: 3px; height: 18px; border-radius: 2px; background: var(--ink); }
+.today.ok .td-line { color: var(--green-d); font-weight: 700; }
+.today.warn .td-line { color: #9a6400; font-weight: 700; }
+.today.over .td-line { color: var(--red); font-weight: 700; }

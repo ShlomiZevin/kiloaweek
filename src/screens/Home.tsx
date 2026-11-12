@@ -116,8 +116,8 @@ export function Home() {
   );
 }
 
-/** Today's eating against the body's burn: eaten, what's left to the end of the day, the usual burn - and whether today
- *  is still a deficit. The burn is the formula's draft (הגוף שלי); without it: eaten only + a way to fill it in. */
+/** Today's eating against today's target: eaten, left until the target (or how far past it), the target - a bar with the
+ *  target marked, and one plain sentence of what it means. The reasoning (the body's burn) is behind "למה ...?". */
 function Today({ eaten, body, sex, cheat, onFood, onBody }: { eaten: number; body: ReturnType<typeof bodyNumbers>['body']; sex?: 'm' | 'f'; cheat: boolean; onFood: () => void; onBody: () => void }) {
   const f = (n: number) => n.toLocaleString('he-IL');
   const [why, setWhy] = useState(false);
@@ -133,12 +133,15 @@ function Today({ eaten, body, sex, cheat, onFood, onBody }: { eaten: number; bod
   }
   const target = body.target;
   const left = target - eaten;
-  const deficit = body.tdee - eaten;
-  const tone = cheat ? 'cheat' : left >= 0 ? 'ok' : deficit > 0 ? 'warn' : 'over';
+  const over = eaten - target;
+  const tone = cheat ? 'cheat' : left >= 0 ? 'ok' : eaten < body.tdee ? 'warn' : 'over';
+  // one plain sentence about what today means - no 'deficit' talk (his note: the numbers alone confused)
   const line = cheat ? 'צ׳יט דיי - היום בלי חשבון'
-    : deficit > 0 ? <>הגוף שורף ~<b className="num">{f(body.tdee)}</b> ביום · היום בגירעון של <b className="num">{f(deficit)}</b></>
-      : <>הגוף שורף ~<b className="num">{f(body.tdee)}</b> ביום · היום מעליו ב-<b className="num">{f(-deficit)}</b></>;
-  const pct = (x: number) => `${Math.max(0, Math.min(100, (x / Math.max(body.tdee, eaten)) * 100))}%`;
+    : left >= 0 ? 'ככה יורדים 700 גרם עד קילו בשבוע'
+      : eaten < body.tdee ? 'היום עדיין יורדים, אבל פחות מהתכנון'
+        : 'היום אכלת יותר ממה שהגוף שורף - היום לא יורדים';
+  const scale = Math.max(target * 1.3, eaten * 1.06);
+  const pct = (x: number) => `${Math.max(0, Math.min(100, (x / scale) * 100))}%`;
   return (
     <div className={`card today ${tone}`}>
       <div className="td-row">
@@ -147,7 +150,11 @@ function Today({ eaten, body, sex, cheat, onFood, onBody }: { eaten: number; bod
         <div className="td-c"><span>יעד היום</span><b className="num">{f(target)}</b><button className="td-why" onClick={() => setWhy(true)}>למה {f(target)}?</button></div>
       </div>
       <button className="td-barwrap" onClick={onFood} aria-label="לאוכל">
-        <div className="td-bar"><i style={{ width: pct(eaten) }} /><em style={{ insetInlineStart: pct(target) }} /></div>
+        <div className="td-bar">
+          <i style={{ width: pct(Math.min(eaten, target)) }} />
+          {over > 0 && <i className="ov" style={{ insetInlineStart: pct(target), width: pct(over) }} />}
+          <span className="td-goal" style={{ insetInlineStart: pct(target) }}><small>יעד</small><b>▼</b></span>
+        </div>
         <div className="td-line">{line}</div>
       </button>
       <Sheet open={why} onClose={() => setWhy(false)} title={`למה היעד הוא ${f(target)}?`}>
