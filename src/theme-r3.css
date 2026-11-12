@@ -402,3 +402,10 @@ body { background: linear-gradient(180deg, #d9e0ff 0, #e8ebfd 200px, var(--bg) 4
 .today.ok .td-line { color: var(--green-d); font-weight: 700; }
 .today.warn .td-line { color: #9a6400; font-weight: 700; }
 .today.over .td-line { color: var(--red); font-weight: 700; }
+@media (max-height: 700px) {
+  .td-barwrap { padding-top: 18px; gap: 5px; }
+  .td-goal small { font-size: 10px; }
+  .td-c span { font-size: 12px; }
+  .td-why { font-size: 11px; }
+}
+@media (max-height: 700px) { .home .hero .v { font-size: 8.4dvh; } .home .hero .k .moon-ic { width: 28px; height: 28px; } }
