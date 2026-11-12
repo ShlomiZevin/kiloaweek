@@ -98,36 +98,28 @@ export function App() {
   );
 }
 
-/** The header - always at the top. The app's name; the coach and the account menu on the left. In the chat it also says
- *  plainly who you're talking to: the AI coach. */
+/** The header - always at the top. The app's name; the coach and the account menu on the left (in the chat: a new chat).
+ *  Who is who in the chat is told by the messages themselves (her picture + "המאמנת · AI"). */
 function Header({ onMenu }: { onMenu: () => void }) {
   const { route, go } = useNav();
   const { user, chat, clearChat } = useStore();
   return (
-    <header className={`top ${route === 'coach' ? 'with-coach' : ''}`}>
+    <header className="top">
       <div className="top-row">
         <button className="brand" onClick={() => go('home')} aria-label="קילו בשבוע - בית">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M3 17l6-6 4 4 8-8" /><path d="M15 7h6v6" /></svg>
           קילו בשבוע
         </button>
         <div className="top-actions">
-          {route !== 'coach' && <button className="icon-btn" onClick={() => go('coach')} aria-label="המאמנת"><Icon name="chat" size={26} /></button>}
-          {route !== 'coach' && <span className="top-sep" />}
+          {route !== 'coach'
+            ? <button className="icon-btn" onClick={() => go('coach')} aria-label="המאמנת"><Icon name="chat" size={26} /></button>
+            : chat.length > 0 && <button className="new-chat" onClick={() => clearChat()}><Icon name="plus" size={16} stroke={2.6} />שיחה חדשה</button>}
+          {(route !== 'coach' || chat.length > 0) && <span className="top-sep" />}
           <button onClick={onMenu} aria-label="החשבון שלי" className="avatar-btn">
             {user?.photoURL ? <img className="avatar" src={user.photoURL} alt="" referrerPolicy="no-referrer" /> : <span className="avatar ph">{(user?.displayName || '?').slice(0, 1)}</span>}
           </button>
         </div>
       </div>
-      {route === 'coach' && (
-        <div className="coach-id">
-          <span className="coach-ph"><img src="/img/coach.jpg" alt="" /><i><Icon name="spark" size={12} stroke={2.6} /></i></span>
-          <div className="coach-t">
-            <b>המאמנת <span className="ai">AI</span></b>
-            <small><span className="ok-dot"><Icon name="check" size={10} stroke={3.4} /></span>יודעת את השיטה ואת הנתונים שלך</small>
-          </div>
-          {chat.length > 0 && <button className="new-chat" onClick={() => clearChat()}><Icon name="plus" size={16} stroke={2.6} />שיחה חדשה</button>}
-        </div>
-      )}
     </header>
   );
 }

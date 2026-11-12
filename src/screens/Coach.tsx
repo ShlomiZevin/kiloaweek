@@ -7,8 +7,6 @@ import { useVoice } from '../lib/voice';
 import { timeOf, today } from '../lib/dates';
 import type { ChatMsg, LogCard, MealCore } from '../lib/types';
 
-const VERDICT = { ok: 'בשיטה', warn: 'לשים לב', no: 'לא בשיטה' } as const;
-
 /** The chat with the AI coach. When you tell her what you did (ate, weighed, drank) she offers a log card - one tap adds it
  *  (a meal also goes into the meal library). No suggested questions, ever (his rule). */
 export function Coach() {
@@ -152,7 +150,7 @@ function LogCardView({ msg, idx }: { msg: ChatMsg; idx: number }) {
     <div className={`log-card ${done ? 'done' : ''}`}>
       <div className="lc-main">
         <div className="lc-t">
-          {l.kind === 'meal' && <><b>{l.meal.he}</b><Macros m={l.meal} /><span className={`badge ${l.meal.verdict}`}>{VERDICT[l.meal.verdict]}</span></>}
+          {l.kind === 'meal' && <><b>{l.meal.he}</b><Macros m={l.meal} /></>}
           {l.kind === 'weight' && <b>{l.slot === 'morning' ? 'שקילת בוקר' : 'שקילת ערב'} <span className="num">{l.kg.toFixed(1)}</span> ק״ג</b>}
           {l.kind === 'water' && <b>מים <span className="num">{l.ml.toLocaleString('he-IL')}</span> מ״ל</b>}
         </div>

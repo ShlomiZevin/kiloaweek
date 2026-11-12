@@ -54,56 +54,46 @@ export function Home() {
             <img className="moon-ic" src={`/img/act-${h < 15 ? 'morning' : 'evening'}.png`} alt="" />
             <div className="k">{h < 5 ? 'לילה טוב' : h < 12 ? 'בוקר טוב' : h < 17 ? 'צהריים טובים' : 'ערב טוב'}{first ? `, ${first}` : ''}</div>
             <div className="s big">{heDate(t)}</div>
-            {hasAny && mo == null && lastEv != null && <div className="s">שקילת הבוקר תגלה כמה הגוף שרף בלילה</div>}
+            {(!hasAny || (mo == null && lastEv != null)) && <div className="s">{hasAny ? 'שקילת הבוקר תגלה כמה הגוף שרף בלילה' : 'שוקלים בבוקר ובערב - וכל בוקר רואים כאן כמה הגוף שרף בלילה'}</div>}
           </>
         )}
       </section>
 
-      {hasAny ? (
-        <>
-          <button className="card wbig" onClick={() => weigh(mo != null ? 'morning' : undefined)}>
-            <div className="wt">
-              <div className="k">{mo != null ? 'המשקל הבוקר' : lastEv != null ? 'אתמול בערב' : 'המשקל'}</div>
-              <div className="v"><span className="num">{(mo ?? lastEv ?? ev ?? 0).toFixed(1)}</span><small>ק״ג</small></div>
-              {mo != null && vsY != null && (
-                <span className={`delta ${vsY <= 0 ? 'down' : 'up'}`}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ transform: vsY <= 0 ? '' : 'rotate(180deg)' }}><path d="M12 5v14M6 13l6 6 6-6" /></svg>
-                  <span className="num">{(Math.abs(vsY) / 1000).toFixed(1)}</span> {vsY <= 0 ? 'פחות' : 'יותר'} מאתמול
-                </span>
-              )}
-            </div>
-            <span className="ic"><img src="/img/f-scale.png" alt="" /></span>
-          </button>
+      <button className="card wbig" onClick={() => weigh(mo != null ? 'morning' : undefined)}>
+        <div className="wt">
+          <div className="k">{mo != null ? 'המשקל הבוקר' : lastEv != null ? 'אתמול בערב' : 'המשקל של היום'}</div>
+          <div className="v">{hasAny ? <><span className="num">{(mo ?? lastEv ?? ev ?? 0).toFixed(1)}</span><small>ק״ג</small></> : <span className="dim">עוד לא נשקלת</span>}</div>
+          {mo != null && vsY != null ? (
+            <span className={`delta ${vsY <= 0 ? 'down' : 'up'}`}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ transform: vsY <= 0 ? '' : 'rotate(180deg)' }}><path d="M12 5v14M6 13l6 6 6-6" /></svg>
+              <span className="num">{(Math.abs(vsY) / 1000).toFixed(1)}</span> {vsY <= 0 ? 'פחות' : 'יותר'} מאתמול
+            </span>
+          ) : !hasAny ? <span className="delta lav">לחצו כדי לשקול</span> : null}
+        </div>
+        <span className="ic"><img src="/img/f-scale.png" alt="" /></span>
+      </button>
 
-          {stall ? (
-            <button className="pill warn" onClick={() => go('insights')}>
-              <div className="t">
-                <b>המשקל עומד {stall.days} ימים - נשימה</b>
-                <div className="hint">{stall.share != null && stall.share >= 0.7 ? 'אתם בתוכנית. זה קורה, ואז הוא יורד בבת אחת.' : 'בודקים את האוכל של הימים האחרונים.'}</div>
-              </div>
-              <span className="chk"><Icon name="timer" size={22} /></span>
-            </button>
-          ) : trend != null ? (
-            <button className={`pill ${trend <= -700 ? '' : trend < 0 ? 'warn' : 'bad'}`} onClick={() => go('insights')}>
-              <div className="t">
-                <div className="k">{trend < 0 ? 'השבוע ירדת' : 'השבוע עלית'}</div>
-                <div className="pv"><span className="num">{(Math.abs(trend) / 1000).toFixed(2)}</span><small>ק״ג</small></div>
-                <div className="hint">{trend <= -700 ? 'במסגרת היעד' : trend < 0 ? 'בכיוון הנכון' : 'מסתכלים על התמונה המלאה'}: <span className="num">{(goalG / 1000).toFixed(1)}</span> ק״ג בשבוע</div>
-              </div>
-              <span className="chk"><Icon name={trend < 0 ? 'check' : 'chart'} size={26} stroke={3} /></span>
-            </button>
-          ) : (
-            <div className="pill lav"><div className="t"><b>המגמה השבועית בדרך</b><div className="hint">אחרי שבועיים של שקילות בוקר היא תופיע כאן</div></div><span className="chk"><Icon name="chart" size={22} /></span></div>
-          )}
-        </>
+      {stall ? (
+        <button className="pill warn" onClick={() => go('insights')}>
+          <div className="t">
+            <b>המשקל עומד {stall.days} ימים - נשימה</b>
+            <div className="hint">{stall.share != null && stall.share >= 0.7 ? 'אתם בתוכנית. זה קורה, ואז הוא יורד בבת אחת.' : 'בודקים את האוכל של הימים האחרונים.'}</div>
+          </div>
+          <span className="chk"><Icon name="timer" size={22} /></span>
+        </button>
+      ) : trend != null ? (
+        <button className={`pill ${trend <= -700 ? '' : trend < 0 ? 'warn' : 'bad'}`} onClick={() => go('insights')}>
+          <div className="t">
+            <div className="k">{trend < 0 ? 'השבוע ירדת' : 'השבוע עלית'}</div>
+            <div className="pv"><span className="num">{(Math.abs(trend) / 1000).toFixed(2)}</span><small>ק״ג</small></div>
+            <div className="hint">{trend <= -700 ? 'במסגרת היעד' : trend < 0 ? 'בכיוון הנכון' : 'מסתכלים על התמונה המלאה'}: <span className="num">{(goalG / 1000).toFixed(1)}</span> ק״ג בשבוע</div>
+          </div>
+          <span className="chk"><Icon name={trend < 0 ? 'check' : 'chart'} size={26} stroke={3} /></span>
+        </button>
       ) : (
-        <div className="card start">
-          <b>איך מתחילים</b>
-          <ol className="steps">
-            <li>שוקלים בבוקר אחרי השירותים, ובערב לפני השינה.</li>
-            <li>שוקלים לפני ואחרי כל פעילות - באותם בגדים, בלי שיער רטוב, ומוסיפים כמה שתיתם בינתיים.</li>
-            <li>מצלמים או מספרים מה אכלתם. אחרי שבועיים יש מגמה ותובנות.</li>
-          </ol>
+        <div className="pill lav">
+          <div className="t"><div className="k">כמה ירדת השבוע</div><div className="hint">יופיע כאן אחרי שבוע של שקילות בוקר. היעד: <span className="num">{(goalG / 1000).toFixed(1)}</span> ק״ג בשבוע</div></div>
+          <span className="chk"><Icon name="chart" size={22} /></span>
         </div>
       )}
 
@@ -116,8 +106,8 @@ export function Home() {
       )}
 
       <div className="minis">
-        <button className="mini lav" onClick={() => go('measure')}><span className="mi"><Icon name="scale" size={26} /></span>מדידה לפני/אחרי</button>
-        <button className="mini blue" onClick={() => go('food')}><span className="mi"><Icon name="camera" size={26} /></span>לרשום אוכל</button>
+        <button className="mini lav" onClick={() => go('measure')}><span className="mi pic"><img src="/img/i-measure.png" alt="" /></span>לפני ואחרי</button>
+        <button className="mini blue" onClick={() => go('food')}><span className="mi pic"><img src="/img/f-bowl.png" alt="" /></span>לרשום אוכל</button>
         <button className="mini mint" onClick={() => go('coach')}><span className="mi ph"><img src="/img/coach.jpg" alt="" /></span>לשוחח עם המאמנת</button>
       </div>
     </div>

@@ -14,7 +14,7 @@ const CHROME = process.env.CHROME || 'C:/Program Files/Google/Chrome/Application
 const AI = !process.argv.includes('--no-ai');
 const SHOTS = process.argv.includes('--shots') ? process.argv[process.argv.indexOf('--shots') + 1] : null;
 const ROUTES = ['/', '/journal', '/measure', '/food', '/insights', '/coach', '/goals', '/reminders', '/foods', '/install'];
-const BANNED = ['פיפי', 'קקי', 'אקסל', 'לא דיאטה', 'ייבוא', 'ייצוא', 'השיטה - קילו בשבוע'];
+const BANNED = ['פיפי', 'קקי', 'אקסל', 'לא דיאטה', 'ייבוא', 'ייצוא', 'השיטה - קילו בשבוע', 'לא בשיטה', 'מתאים לשיטה', 'לשים לב', 'איך מתחילים'];
 
 let failed = 0, passed = 0;
 const ok = (cond, what) => { if (cond) { passed++; console.log('  ✓', what); } else { failed++; console.log('  ✗', what); } };
@@ -133,6 +133,7 @@ if (AI) {
   ok(!!(await p.$('.log-card .btn')), 'coach: offers a meal card with "הוסף"');
   const reply = await p.$$eval('.msg.assistant', els => els.at(-1)?.textContent || '');
   ok(!/\?\s*$/.test(reply.trim()), `coach: doesn't end with a question ("${reply.slice(0, 80)}")`);
+  ok(!/בשיטה|לשיטה/.test(reply), 'coach: never says "בשיטה" / "לא בשיטה"');
   await p.click('.log-card .btn'); await sleep(500);
   ok(!!(await p.$('.lc-done')), 'coach: the card is added in one tap');
   await p.type('.composer textarea', 'שקלתי עכשיו 81.4, שקילת ערב');

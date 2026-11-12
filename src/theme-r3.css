@@ -256,3 +256,18 @@ body { background: linear-gradient(180deg, #d9e0ff 0, #e8ebfd 200px, var(--bg) 4
 .ghead .gk { font-weight: 700; opacity: .95; }
 
 .toast { bottom: calc(64px + 18px + env(safe-area-inset-bottom)); }
+
+/* round 3b (his notes): home spread over the whole screen, painted icons on the shortcuts, a plain chat header */
+.home { justify-content: space-between; gap: 0; }
+.home > * + * { margin-top: 10px; }
+.home .hero { flex: 0 1 clamp(150px, 34dvh, 300px); }
+.home .mini { min-height: clamp(86px, 13dvh, 118px); justify-content: center; }
+.mini .mi.pic { background: none; width: auto; height: auto; border-radius: 0; }
+.mini .mi.pic img { width: clamp(40px, 6dvh, 52px); height: clamp(40px, 6dvh, 52px); }
+.wbig .v .dim { color: #9aa3bd; font-size: 24px; font-weight: 700; letter-spacing: 0; }
+.delta.lav { background: var(--lav); color: var(--indigo); }
+.top .new-chat { padding: 7px 12px; font-size: 13.5px; background: var(--mint); box-shadow: none; }
+.why { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border-radius: 16px; background: var(--lav); }
+.why img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex: none; }
+.why p { font-size: 14.5px; color: var(--ink-2); }
+.mini .mi.pic img, .again-chip .ph img, .meal .ph img, .lc-ic { mix-blend-mode: multiply; }

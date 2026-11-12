@@ -7,7 +7,6 @@ import { useVoice } from '../lib/voice';
 import { Macros } from './Coach';
 import type { Meal, MealCore, MealItem, SavedMeal } from '../lib/types';
 
-export const VERDICT: Record<Meal['verdict'], string> = { ok: 'מתאים לשיטה', warn: 'לשים לב', no: 'לא בשיטה' };
 const sumOf = (items: MealItem[]) => ({
   protein: items.reduce((a, x) => a + (x.protein || 0), 0), carbs: items.reduce((a, x) => a + (x.carbs || 0), 0),
   sugar: items.reduce((a, x) => a + (x.sugar || 0), 0), calories: items.reduce((a, x) => a + (x.calories || 0), 0),
@@ -74,7 +73,6 @@ export function Food() {
           <div className="mi">
             <b>{m.he}</b>
             <Macros m={m} />
-            {m.verdict !== 'ok' && <span className={`badge ${m.verdict}`}>{VERDICT[m.verdict]}</span>}
           </div>
           <Icon name="fwd" size={20} />
         </button>
@@ -175,7 +173,7 @@ function AddMeal({ date, input, cheat, onClose }: { date: string; input: { image
             <div className="divider" />
             <div className="it"><span className="hint">קלוריות</span><b className="num">{meal.calories.toLocaleString('he-IL')}</b></div>
           </div>
-          <div className={`verdict ${meal.verdict}`}><span className={`badge ${meal.verdict}`}>{VERDICT[meal.verdict]}</span>{meal.why && <p>{meal.why}</p>}</div>
+          {meal.why && <div className="why"><img src="/img/coach.jpg" alt="" /><p>{meal.why}</p></div>}
           <button className="btn" onClick={save}>שמירה</button>
           <div className="row">
             <input className="input" value={fix} onChange={e => setFix(e.target.value)} placeholder="משהו לא מדויק? למשל: בלי הלחם" />
@@ -208,7 +206,6 @@ export function EditMeal({ meal, onClose }: { meal: Meal; onClose: () => void })
           {m.items.map((it, i) => <div key={i} className="it"><div><b>{it.he}</b>{it.protein != null && <Macros m={it} />}</div><button className="icon-btn sm" onClick={() => dropItem(i)} aria-label={`הסרת ${it.he}`}><Icon name="close" size={18} /></button></div>)}
         </div>
       )}
-      <div className="row">{(['ok', 'warn', 'no'] as const).map(v => <button key={v} className={`chip ${m.verdict === v ? 'on' : ''}`} onClick={() => setM({ ...m, verdict: v })}>{VERDICT[v]}</button>)}</div>
       <label className="field"><span>מתי</span><input className="input" type="datetime-local" value={when} onChange={e => setWhen(e.target.value)} /></label>
       <button className="btn" onClick={async () => { const at = fromLocalInput(when); await saveMeal({ ...m, at, date: dayOf(at) }); toast('נשמר'); onClose(); }}>שמירה</button>
       <button className="btn danger" onClick={async () => { await deleteMeal(m.id); toast('נמחק'); onClose(); }}>מחיקה</button>
