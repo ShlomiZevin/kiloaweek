@@ -41,7 +41,7 @@ function seed() {
     ...meals.map((x, i) => ({ ...(libraryEntry(x) as any), id: foodKey(x.he), n: 5 - i })),
     { id: 'שקשוקה', he: 'שקשוקה', items: [{ he: 'שקשוקה, 2 ביצים', calories: 260, protein: 15, carbs: 14, sugar: 9 }], calories: 260, protein: 15, carbs: 14, sugar: 9, verdict: 'ok', n: 2, lastAt: Date.now() - 86400000 },
   ];
-  return { profile: { name: 'בודק', email: 'test@example.com', startWeight: 89.5, goalWeight: 80, heightCm: 178, reminders: { on: false, morning: '07:30', evening: '22:00' } } as Profile, days, measures, meals, foods, chat: [] as ChatMsg[] };
+  return { profile: { name: 'בודק', email: 'test@example.com', startWeight: 89.5, goalWeight: 80, heightCm: 178, sex: 'm', birthYear: 1984, activity: 'light', reminders: { on: false, morning: '07:30', evening: '22:00' } } as Profile, days, measures, meals, foods, chat: [] as ChatMsg[] };
 }
 type DB = ReturnType<typeof seed>;
 function load(): DB {

@@ -70,6 +70,9 @@ export type Profile = {
   email?: string;
   photo?: string;
   heightCm?: number;
+  sex?: 'm' | 'f';
+  birthYear?: number;
+  activity?: 'low' | 'light' | 'mid' | 'high';
   startWeight?: number;
   goalWeight?: number;
   weeklyGoalG?: number; // default 800

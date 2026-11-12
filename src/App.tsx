@@ -11,18 +11,19 @@ import { Insights } from './screens/Insights';
 import { Coach } from './screens/Coach';
 import { Goals, Reminders } from './screens/Me';
 import { Foods } from './screens/Foods';
+import { Body } from './screens/Body';
 import { Install } from './screens/Install';
 import { WeighSheet } from './screens/WeighSheet';
 
-export type Route = 'home' | 'journal' | 'measure' | 'food' | 'insights' | 'coach' | 'goals' | 'reminders' | 'foods' | 'install';
+export type Route = 'home' | 'journal' | 'measure' | 'food' | 'insights' | 'coach' | 'goals' | 'reminders' | 'foods' | 'install' | 'body';
 const PATHS: Record<Route, string> = {
   home: '/', journal: '/journal', measure: '/measure', food: '/food', insights: '/insights', coach: '/coach',
-  goals: '/goals', reminders: '/reminders', foods: '/foods', install: '/install',
+  goals: '/goals', reminders: '/reminders', foods: '/foods', install: '/install', body: '/body',
 };
 const fromPath = (p: string): Route => (Object.entries(PATHS).find(([, v]) => v === p)?.[0] as Route) || 'home';
 const SCREENS: Record<Route, () => JSX.Element> = {
   home: Home, journal: Journal, measure: MeasureScreen, food: Food, insights: Insights, coach: Coach,
-  goals: Goals, reminders: Reminders, foods: Foods, install: Install,
+  goals: Goals, reminders: Reminders, foods: Foods, install: Install, body: Body,
 };
 // Painted tab icons (GPT Image 2.6 Flare, design/r3/nav-icons.png): full colour on the open tab, muted on the others.
 const TABS: { r: Route; he: string; icon: string }[] = [
@@ -130,11 +131,12 @@ function AccountMenu({ open, onClose }: { open: boolean; onClose: () => void }) 
   const { user } = useStore();
   const { go } = useNav();
   const rows: { r: Route; icon: string; he: string; sub?: string; tint: string }[] = [
+    { r: 'body', icon: 'flame', he: 'הגוף שלי', sub: 'BMI וכמה הגוף שורף ביום', tint: 'blue' },
     { r: 'goals', icon: 'target', he: 'היעדים שלי', sub: 'משקל התחלה, משקל יעד, יעד שבועי', tint: 'mint' },
     { r: 'reminders', icon: 'bell', he: 'תזכורות לשקילה', sub: 'בוקר וערב, הפעלה וכיבוי', tint: 'lav' },
     { r: 'foods', icon: 'food', he: 'הארוחות השמורות שלי', sub: 'כל הארוחות שתיעדת, להוספה בלחיצה', tint: 'aqua' },
   ];
-  if (!isStandalone()) rows.push({ r: 'install', icon: 'phone', he: 'הוספה למסך הבית', tint: 'blue' });
+  if (!isStandalone()) rows.push({ r: 'install', icon: 'phone', he: 'הוספה למסך הבית', tint: 'lav' });
   return (
     <Sheet open={open} onClose={onClose}>
       <div className="acct">

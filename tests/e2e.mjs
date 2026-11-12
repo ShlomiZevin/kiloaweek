@@ -13,7 +13,7 @@ const BASE = 'http://localhost:5190';
 const CHROME = process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const AI = !process.argv.includes('--no-ai');
 const SHOTS = process.argv.includes('--shots') ? process.argv[process.argv.indexOf('--shots') + 1] : null;
-const ROUTES = ['/', '/journal', '/measure', '/food', '/insights', '/coach', '/goals', '/reminders', '/foods', '/install'];
+const ROUTES = ['/', '/journal', '/measure', '/food', '/insights', '/coach', '/goals', '/reminders', '/foods', '/install', '/body'];
 const BANNED = ['פיפי', 'קקי', 'אקסל', 'לא דיאטה', 'ייבוא', 'ייצוא', 'השיטה - קילו בשבוע', 'לא בשיטה', 'מתאים לשיטה', 'לשים לב', 'איך מתחילים'];
 
 let failed = 0, passed = 0;
@@ -78,6 +78,14 @@ console.log('\n== flows (390x844) ==');
 const p = await phone(390, 844);
 await p.goto(`${BASE}/?fresh`, { waitUntil: 'networkidle0' });
 await sleep(500);
+
+// body numbers: BMI / BMR / TDEE from the seeded profile (man, 1984, 178 cm, light) and the latest weight
+await p.evaluate(() => { history.pushState(null, '', '/body'); dispatchEvent(new PopStateEvent('popstate')); }); await sleep(400);
+const br = await p.$$eval('.br-row b', els => els.map(e => e.textContent));
+ok(br.length === 3 && /^\d\d\.\d$/.test(br[0]), `body: BMI / BMR / TDEE = ${br.join(' | ')}`);
+ok(await p.evaluate(() => !!document.querySelector('.br-goal')), 'body: a draft daily calorie range for 0.7-1 kg a week');
+await p.evaluate(() => { history.pushState(null, '', '/'); dispatchEvent(new PopStateEvent('popstate')); }); await sleep(400);
+ok(await p.evaluate(() => !!document.querySelector('.body-chips') && !document.querySelector('.body-chips.ask')), 'home: shows BMI and the daily burn');
 
 // account menu
 await p.click('.avatar-btn'); await sleep(300);

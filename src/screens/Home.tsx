@@ -3,7 +3,8 @@ import { useStore } from '../lib/store';
 import { useNav } from '../App';
 import { Icon } from '../ui';
 import { addDays, heDate, hourNow, today } from '../lib/dates';
-import { eOf, mOf, nightBurn, toMap, vsDaysAgo, weekTrend } from '../lib/calc';
+import { eOf, latestWeight, mOf, nightBurn, toMap, vsDaysAgo, weekTrend } from '../lib/calc';
+import { bodyNumbers } from '../lib/body';
 import { stallNote } from '../lib/analysis';
 import { isMobile, isStandalone, pushIsOn } from '../lib/pwa';
 import { LiveMeasure } from './Measure';
@@ -27,6 +28,16 @@ export function Home() {
   useEffect(() => { pushIsOn().then(setPushOn); }, []);
   const hasAny = days.some(d => d.morning != null || d.evening != null);
   const first = (profile.name || user?.displayName || '').split(' ')[0];
+  const { body } = useMemo(() => bodyNumbers(profile, latestWeight(days) ?? profile.startWeight ?? null), [profile, days]);
+  const bodyLine = body ? (
+    <button className="body-chips" onClick={() => go('body')}>
+      <span>BMI <b className="num">{body.bmi.toFixed(1)}</b></span>
+      <span>שורף ביום <b className="num">~{body.tdee.toLocaleString('he-IL')}</b></span>
+      <span>לאכול <b className="num">{body.eatFrom.toLocaleString('he-IL')}–{body.eatTo.toLocaleString('he-IL')}</b></span>
+    </button>
+  ) : (
+    <button className="body-chips ask" onClick={() => go('body')}><span>כמה הגוף שלך שורף ביום? <b>4 פרטים</b></span><Icon name="fwd" size={16} /></button>
+  );
 
   // the one next thing
   const next = mo == null && h < 15
@@ -48,6 +59,7 @@ export function Home() {
             <div className="k">{nb >= 0 ? 'בלילה הגוף שרף' : 'בלילה עלית'}</div>
             <div className="v"><span>{Math.abs(nb).toLocaleString('he-IL')}</span><small>גרם</small></div>
             <div className="s">מ-<span className="num">{lastEv!.toFixed(1)}</span> בערב ל-<span className="num">{mo!.toFixed(1)}</span> בבוקר</div>
+            {bodyLine}
           </>
         ) : (
           <>
@@ -55,6 +67,7 @@ export function Home() {
             <div className="k">{h < 5 ? 'לילה טוב' : h < 12 ? 'בוקר טוב' : h < 17 ? 'צהריים טובים' : 'ערב טוב'}{first ? `, ${first}` : ''}</div>
             <div className="s big">{heDate(t)}</div>
             {(!hasAny || (mo == null && lastEv != null)) && <div className="s">{hasAny ? 'שקילת הבוקר תגלה כמה הגוף שרף בלילה' : 'שוקלים בבוקר ובערב - וכל בוקר רואים כאן כמה הגוף שרף בלילה'}</div>}
+            {bodyLine}
           </>
         )}
       </section>

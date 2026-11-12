@@ -1,5 +1,6 @@
 // Every number the app shows is computed here from the raw weighings - nothing is stored twice.
-import type { ActType, Day, Measure } from './types';
+import type { ActType, Day, Measure, Profile } from './types';
+import { bodyNumbers } from './body';
 import { addDays, diffDays, today, weekday, weekStart, WEEKDAYS } from './dates';
 
 export const AEROBIC: ActType[] = ['run', 'walk', 'swim', 'bike'];
@@ -219,12 +220,20 @@ function conclude(m: DayMap, measures: Measure[], r: Research, to: string): stri
 }
 
 /** A compact text of his numbers for the coach (the server never reads the database for this). */
-export function coachContext(m: DayMap, measures: Measure[], meals: { date: string; he: string; calories: number; verdict: string; protein?: number; carbs?: number; sugar?: number }[], profile: { goalWeight?: number; startWeight?: number; heightCm?: number }) {
+/** The latest weight on record (morning first, then evening), for BMI / BMR. */
+export function latestWeight(days: Day[]) {
+  const d = [...days].filter(x => num(x.morning) != null || num(x.evening) != null).sort((a, b) => b.date.localeCompare(a.date))[0];
+  return d ? (num(d.morning) ?? num(d.evening)) : null;
+}
+
+export function coachContext(m: DayMap, measures: Measure[], meals: { date: string; he: string; calories: number; verdict: string; protein?: number; carbs?: number; sugar?: number }[], profile: Profile) {
   const t = today();
   const lines: string[] = [`היום: ${t} (${WEEKDAYS[weekday(t)]}).`];
   if (profile.startWeight) lines.push(`משקל התחלה: ${profile.startWeight} ק״ג.`);
   if (profile.goalWeight) lines.push(`משקל יעד: ${profile.goalWeight} ק״ג.`);
   if (profile.heightCm) lines.push(`גובה: ${profile.heightCm} ס״מ.`);
+  const { body } = bodyNumbers(profile, latestWeight([...m.values()]) ?? profile.startWeight ?? null);
+  if (body) lines.push(`לפי נוסחה (טיוטה): BMI ${body.bmi}, BMR ${body.bmr} קק״ל, ביום רגיל ${body.tdee} קק״ל; לקילו בשבוע בערך ${body.eatFrom}-${body.eatTo} קק״ל ביום.`);
   lines.push('14 הימים האחרונים (תאריך | בוקר | ערב | שריפה לילית גרם | עלייה יומית גרם | סוג יום):');
   for (let i = 13; i >= 0; i--) {
     const d = addDays(t, -i), k = dayKinds(m, measures, d);

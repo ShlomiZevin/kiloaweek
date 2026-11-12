@@ -8,15 +8,14 @@ import { disablePush, enablePush, pushIsOn, pushNeedsInstall, pushSupported } fr
 export function Goals() {
   const { profile, saveProfile } = useStore();
   const { toast } = useNav();
-  const [p, setP] = useState({ startWeight: '', goalWeight: '', weeklyGoalG: '', heightCm: '' });
+  const [p, setP] = useState({ startWeight: '', goalWeight: '', weeklyGoalG: '' });
   useEffect(() => {
     setP({
       startWeight: profile.startWeight ? String(profile.startWeight) : '',
       goalWeight: profile.goalWeight ? String(profile.goalWeight) : '',
       weeklyGoalG: profile.weeklyGoalG ? String(profile.weeklyGoalG) : '',
-      heightCm: profile.heightCm ? String(profile.heightCm) : '',
     });
-  }, [profile.heightCm, profile.startWeight, profile.goalWeight, profile.weeklyGoalG]);
+  }, [profile.startWeight, profile.goalWeight, profile.weeklyGoalG]);
   const numOrDel = (s: string) => { const n = parseFloat(s.replace(',', '.')); return isFinite(n) && n > 0 ? n : null; };
   const saveField = (k: keyof typeof p) => {
     const v = numOrDel(p[k]);
@@ -35,7 +34,6 @@ export function Goals() {
           {F({ k: 'startWeight', he: 'משקל התחלה (ק״ג)' })}
           {F({ k: 'goalWeight', he: 'משקל יעד (ק״ג)' })}
           {F({ k: 'weeklyGoalG', he: 'יעד שבועי (גרם)', ph: '800', mode: 'numeric' })}
-          {F({ k: 'heightCm', he: 'גובה (ס״מ)', mode: 'numeric' })}
         </div>
         <p className="hint">השיטה: גירעון לאורך שבועות - 700 גרם עד קילו בשבוע. המשקל היומי עולה ויורד, המגמה השבועית היא מה שקובע.</p>
       </div>

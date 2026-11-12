@@ -47,8 +47,7 @@ body { background: linear-gradient(180deg, #d9e0ff 0, #e8ebfd 200px, var(--bg) 4
 .nav button.on::after { content: ''; position: absolute; bottom: 4px; width: 26px; height: 3px; border-radius: 3px; background: var(--indigo); }
 .nav button .ni img { width: 28px; height: 28px; filter: grayscale(1) opacity(.5); transition: filter .15s, transform .15s; }
 .nav button.on .ni img { filter: none; transform: scale(1.12); }
-.nav button.mid .ni { background: none; width: 52px; height: 34px; }
-.nav button.mid .ni img { width: 32px; height: 32px; }
+.nav button.mid .ni { background: none; width: 44px; height: 30px; }
 .nav button.on { color: var(--ink); font-weight: 700; }
 .nav button.on::after { background: #2dbb8a; }
 
@@ -264,7 +263,33 @@ body { background: linear-gradient(180deg, #d9e0ff 0, #e8ebfd 200px, var(--bg) 4
 /* round 3b (his notes): home spread over the whole screen, painted icons on the shortcuts, a plain chat header */
 .home { justify-content: space-between; gap: 0; }
 .home > * + * { margin-top: 10px; }
-.home .hero { flex: 0 1 clamp(150px, 34dvh, 300px); }
+/* round 3c: the hero is as tall as its content; the free height is shared equally between all the blocks */
+.home { justify-content: space-evenly; }
+.home > * + * { margin-top: 0; }
+.home .hero { flex: none; container-type: normal; padding: 4px 0; }
+.home .hero .moon-ic { width: clamp(40px, 7dvh, 64px); height: clamp(40px, 7dvh, 64px); }
+.home .hero .k { font-size: clamp(16px, 2.6dvh, 22px); }
+.home .hero .v { font-size: clamp(54px, 10.5dvh, 100px); }
+.home .hero .v small { font-size: clamp(16px, 2.6dvh, 22px); }
+.body-chips { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; margin: 10px auto 0; }
+.body-chips > span { padding: 5px 12px; border-radius: 999px; background: rgba(255,255,255,.85); border: 1px solid #dfe3f5; font-size: 13px; color: var(--ink-2); }
+.body-chips b { color: var(--ink); font-weight: 800; }
+.body-chips.ask { gap: 4px; padding: 7px 14px; border-radius: 999px; background: #fff; border: 1px solid #d5daf6; color: var(--indigo); font-weight: 600; font-size: 14px; }
+.body-chips.ask > span { padding: 0; border: 0; background: none; color: var(--indigo); font-size: 14px; }
+.body-chips.ask b { color: var(--indigo); }
+@media (max-height: 680px) { .body-chips > span:nth-child(3) { display: none; } .body-chips { margin-top: 6px; } }
+.acts-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.act-opt { display: grid; gap: 2px; padding: 10px 12px; border-radius: 16px; border: 1.5px solid var(--line); background: #fff; text-align: right; }
+.act-opt b { font-size: 15px; } .act-opt small { font-size: 12.5px; color: var(--muted); line-height: 1.3; }
+.act-opt.on { border-color: var(--indigo); background: var(--lav); }
+.body-res { display: grid; gap: 0; padding: 6px 16px 14px; }
+.br-row { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.br-row > div { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.br-row span { font-weight: 600; color: var(--ink-2); }
+.br-row b { font-size: 20px; font-weight: 800; }
+.br-row small { color: var(--muted); font-size: 12.5px; }
+.br-goal { margin: 12px 0 8px; padding: 12px 14px; border-radius: 16px; background: var(--mint); display: grid; gap: 2px; }
+.br-goal span { font-size: 14px; color: var(--ink-2); font-weight: 600; } .br-goal b { font-size: 19px; color: var(--green-d); }
 .home .mini { min-height: clamp(86px, 13dvh, 118px); justify-content: center; }
 .mini .mi.pic { background: none; width: auto; height: auto; border-radius: 0; }
 .mini .mi.pic img { width: clamp(40px, 6dvh, 52px); height: clamp(40px, 6dvh, 52px); }
@@ -275,3 +300,9 @@ body { background: linear-gradient(180deg, #d9e0ff 0, #e8ebfd 200px, var(--bg) 4
 .why img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex: none; }
 .why p { font-size: 14.5px; color: var(--ink-2); }
 .mini .mi.pic img, .again-chip .ph img, .meal .ph img, .lc-ic { mix-blend-mode: multiply; }
+@media (max-height: 700px) {
+  .home .hero .moon-ic { display: none; }
+  .home .hero .v { font-size: 9dvh; }
+  .home .hero .s { margin-top: 2px; font-size: 13px; }
+  .body-chips > span { padding: 3px 10px; font-size: 12px; }
+}

@@ -8,7 +8,9 @@ today), day gain (morning → evening), vs yesterday / vs same weekday last week
 (goal 700 g–1 kg down). Plus before/after any activity (same clothes, no wet hair; net = before − after + what they
 drank meanwhile, added while it runs), food counted mainly in protein / carbs / sugars (photo, typing or a voice message;
 the AI never asks back - it assumes an average portion), a meal library (every logged meal, again in one tap), the AI
-coach (offers log cards - meal / weight / water - that the user adds with one tap) and the multi-day analyst. The method
+coach (offers log cards - meal / weight / water - that the user adds with one tap), the multi-day analyst, and
+"הגוף שלי" (`src/lib/body.ts`: BMI, BMR, TDEE by Mifflin-St Jeor from sex / birth year / height / activity + the latest
+weighing, and a draft daily calorie range for 0.7-1 kg a week - shown on home under the main number and given to the coach). The method
 itself is `functions/bible.js` (his text, word for word) - it feeds the AI only; there is no method page in the app.
 
 **His rules (2026-11-12 review):** the header always at the top and the tab bar always at the bottom (`.shell`: only
