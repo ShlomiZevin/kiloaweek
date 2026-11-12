@@ -24,12 +24,13 @@ const SCREENS: Record<Route, () => JSX.Element> = {
   home: Home, journal: Journal, measure: MeasureScreen, food: Food, insights: Insights, coach: Coach,
   goals: Goals, reminders: Reminders, foods: Foods, install: Install,
 };
+// Painted tab icons (GPT Image 2.6 Flare, design/r3/nav-icons.png): full colour on the open tab, muted on the others.
 const TABS: { r: Route; he: string; icon: string }[] = [
   { r: 'home', he: 'בית', icon: 'home' },
   { r: 'journal', he: 'יומן', icon: 'journal' },
-  { r: 'measure', he: 'לפני/אחרי', icon: 'scale' },
+  { r: 'measure', he: 'לפני/אחרי', icon: 'measure' },
   { r: 'food', he: 'אוכל', icon: 'food' },
-  { r: 'insights', he: 'התקדמות', icon: 'chart' },
+  { r: 'insights', he: 'התקדמות', icon: 'progress' },
 ];
 
 type Nav = {
@@ -84,7 +85,7 @@ export function App() {
           <div className="nav-in">
             {TABS.map(t => (
               <button key={t.r} className={`${route === t.r ? 'on' : ''} ${t.r === 'measure' ? 'mid' : ''}`} onClick={() => go(t.r)} aria-current={route === t.r ? 'page' : undefined}>
-                <span className="ni"><Icon name={t.icon} size={24} /></span>
+                <span className="ni"><img src={`/img/nav-${t.icon}.png`} alt="" /></span>
                 {t.he}
               </button>
             ))}

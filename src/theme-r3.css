@@ -45,8 +45,12 @@ body { background: linear-gradient(180deg, #d9e0ff 0, #e8ebfd 200px, var(--bg) 4
 .nav button .ni { display: grid; place-items: center; width: 44px; height: 30px; border-radius: 12px; }
 .nav button.on { color: var(--indigo); }
 .nav button.on::after { content: ''; position: absolute; bottom: 4px; width: 26px; height: 3px; border-radius: 3px; background: var(--indigo); }
-.nav button.mid .ni { background: var(--lav); color: var(--indigo); width: 50px; height: 32px; }
-.nav button.mid.on .ni { background: linear-gradient(135deg, #5d70f2, #3f4fc9); color: #fff; }
+.nav button .ni img { width: 28px; height: 28px; filter: grayscale(1) opacity(.5); transition: filter .15s, transform .15s; }
+.nav button.on .ni img { filter: none; transform: scale(1.12); }
+.nav button.mid .ni { background: none; width: 52px; height: 34px; }
+.nav button.mid .ni img { width: 32px; height: 32px; }
+.nav button.on { color: var(--ink); font-weight: 700; }
+.nav button.on::after { background: #2dbb8a; }
 
 /* ── a page from the account menu ── */
 .page-head { display: flex; align-items: center; gap: 4px; margin: 0 -8px 4px; }

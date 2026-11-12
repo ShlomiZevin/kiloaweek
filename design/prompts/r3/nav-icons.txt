@@ -1,0 +1,7 @@
+The attached pictures are icons of the app "קילו בשבוע" (a weight-loss app). Make FIVE more icons in exactly the same set, for the app's bottom tab bar, where each is shown at about 28 pixels, so each must be ONE simple, instantly readable object:
+1. בית - home.
+2. יומן - the journal: the list of every day's morning and evening weights.
+3. לפני/אחרי - the main tab: weighing yourself before and right after an activity (a bathroom scale).
+4. אוכל - food: what you ate.
+5. התקדמות - progress: your weight going down over the weeks.
+All five in ONE horizontal row, left to right in this order, with large equal empty gaps between them, the same size, each centered in its fifth of the picture. Transparent background. No text, no letters, no numbers, no frames, no buttons behind them.
